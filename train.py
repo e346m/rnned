@@ -5,17 +5,16 @@ from __future__ import print_function
 
 import sys
 sys.path.append("./origlink")
+sys.path.append("./partial_model")
 import argparse
 import read_data as rd
 import ext_classifier as ec
-import lstm as ll
-import l_maxout as lm
 import transpose
-
+import rnndec
+import rnnenc
+import middle
 #from pudb import set_trace
 from ipdb import set_trace
-
-import numpy as np
 
 import chainer
 import chainer.functions as F
@@ -24,69 +23,18 @@ from chainer import training
 from chainer import variable
 from chainer.training import extensions
 
-class RNNEncoder(chainer.Chain):
-  def __init__(self, source_vocab, n_units, train=True):
-    super(RNNEncoder, self).__init__(
-      embed = L.EmbedID(source_vocab, n_units),
-      l1 = L.LSTM(n_units, n_units),
-      )
-    for param in self.params():
-      param.data[...] = np.random.uniform(-0.1, 0.1, param.data.shape)
-      self.train = train
-
-  def reset_state(self):
-    self.l1.reset_state()
-
-  def __call__(self, x):
-    x_cswr = self.embed(x)
-    self.l1(F.dropout(x_cswr, train=self.train))
-    return None
-
-class RNNDecoder(chainer.Chain):
-  def __init__(self, target_vocab, n_units, train=True):
-    super(RNNDecoder, self).__init__(
-      embed = L.EmbedID(target_vocab, n_units),
-      l1 = ll.LSTMDec(n_units, n_units),
-      l2 = lm.Maxout(n_units, target_vocab, 100)
-      )
-    for param in self.params():
-      param.data[...] = np.random.uniform(-0.1, 0.1, param.data.shape)
-      self.train = train
-
-  def reset_state(self, target_vocab):
-    self.l1.reset_state()
-    self.prev_output = np.zeros((20, target_vocab), dtype=np.float32)
-
-  def __call__(self, prev_y_id, cfe, num, dec_h0):
-    y_cswr = self.embed(prev_y_id)
-    h1= self.l1(F.dropout(y_cswr, train=self.train), cfe, num, dec_h0)
-    y = self.l2(h1, self.prev_output, cfe)
-    self.prev_output = y
-    return y
-
-class MiddleC(chainer.Chain):
-  def __init__(self, n_units, train=True):
-    super(MiddleC, self).__init__(
-      to_c = L.Linear(n_units, n_units),
-      from_c = L.Linear(n_units, n_units),
-      )
-    for param in self.params():
-      param.data[...] = np.random.uniform(-0.1, 0.1, param.data.shape)
-      self.train = train
-
-  def __call__(self, opt_enc):
-    Vh = self.to_c(opt_enc.target.predictor.l1.h)
-    self.mid_c = F.tanh(Vh)
-    self.dec_h0 = F.tanh(self.from_c(self.mid_c))
-    return None
+class RNNED(chainer.Chain):
+  def __init__(self, source_vocab, target_vocab, n_units):
+    super(RNNED, self).__init__(
+    rnnenc = rnnenc.RNNEncoder(source_vocab, n_units),
+    rnndec = rnndec.RNNDecoder(target_vocab, n_units),
+    middle = middle.MiddleC(n_units)
+    )
 
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('--batchsize', '-b', type=int, default=20,
       help='Number of examples in each mini batch')
-  #parser.add_argument('--bproplen', '-l', type=int, default=35,
-  #    help='Number of words in each mini batch '
-  #    '(= length of truncated BPTT)')
   parser.add_argument('--epoch', '-e', type=int, default=39,
       help='Number of sweeps over the dataset to train')
   parser.add_argument('--gpu', '-g', type=int, default=-1,
@@ -115,9 +63,8 @@ def main():
   ja, source_vocab = rd.ja_load_data('./ja.utf')
   en, target_vocab = rd.en_load_data('./en.utf')
 
-  rnnenc = RNNEncoder(source_vocab, args.unit)
-  rnndec = RNNDecoder(target_vocab, args.unit)
-  middle = MiddleC(args.unit)
+  rnned = RNNED(source_vocab, target_vocab, args.unit)
+  set_trace()
   enc_model = ec.EncClassifier(rnnenc)
   dec_model = ec.DecClassifier(rnndec)
   transposer = transpose.Transpose()
