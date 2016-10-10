@@ -2,9 +2,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
 from __future__ import print_function
+
+import sys
+sys.path.append("./origlink")
 import argparse
-import read_data
-import ext_classifier
+import read_data as rd
+import ext_classifier as ec
 import lstm as ll
 import l_maxout as lm
 import transpose
@@ -109,14 +112,14 @@ def main():
     offsets = [i * len(dataset) // args.batchsize for i in range(args.batchsize)]
     return [dataset[((itre + offset) % len(dataset))] for offset in offsets]
 
-  ja, source_vocab = read_data.ja_load_data('./ja.utf')
-  en, target_vocab = read_data.en_load_data('./en.utf')
+  ja, source_vocab = rd.ja_load_data('./ja.utf')
+  en, target_vocab = rd.en_load_data('./en.utf')
 
   rnnenc = RNNEncoder(source_vocab, args.unit)
   rnndec = RNNDecoder(target_vocab, args.unit)
   middle = MiddleC(args.unit)
-  enc_model = ext_classifier.EncClassifier(rnnenc)
-  dec_model = ext_classifier.DecClassifier(rnndec)
+  enc_model = ec.EncClassifier(rnnenc)
+  dec_model = ec.DecClassifier(rnndec)
   transposer = transpose.Transpose()
 
   dec_model.compute_accuracy = False  # we only want the perplexity
