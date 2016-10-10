@@ -21,6 +21,7 @@ import chainer.functions as F
 import chainer.links as L
 from chainer import training
 from chainer import variable
+from chainer import serializers
 from chainer.training import extensions
 
 #class RNNED(chainer.Chain):
@@ -121,6 +122,15 @@ def main():
     opt_dec.update()  # Update the parameters
     opt_enc.update()  # Update the parameters
     opt_middle.update()
+
+  print("save the model")
+  serializers.save_npz("dec.model", dec_model)
+  serializers.save_npz("enc.model", enc_model)
+  serializers.save_npz("midlle.model", middle_c)
+  print("save the optimizer")
+  serializers.save_npz("rnnlm.state", optimizer)
+  serializers.save_npz("dec.state", dec_opt)
+  serializers.save_npz("enc.state", enc_opt)
 
 if __name__ == '__main__':
   main()
