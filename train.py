@@ -65,13 +65,12 @@ def main():
 
   #rnned = RNNED(source_vocab, target_vocab, args.unit)
 
-  rnnenc = rnnenc.RNNEncoder(source_vocab, args.unit),
-  rnndec = rnndec.RNNDecoder(target_vocab, args.unit),
-  middle = middle.MiddleC(args.unit)
+  enc = rnnenc.RNNEncoder(source_vocab, args.unit)
+  dec = rnndec.RNNDecoder(target_vocab, args.unit)
+  middle_c = middle.MiddleC(args.unit)
 
-  enc_model = ec.encClassifier(rnnenc)
-  dec_model = ec.DecClassifier(rnndec)
-  middle = rnned.middle
+  enc_model = ec.EncClassifier(enc)
+  dec_model = ec.DecClassifier(dec)
   transposer = transpose.Transpose()
 
   dec_model.compute_accuracy = False  # we only want the perplexity
@@ -82,7 +81,7 @@ def main():
     enc_model.to_gpu()
 
   opt_enc = chainer.optimizers.SGD(lr=0.5)
-  opt_enc.setup(rnnenc) #RNNENCの中でoptimizerを呼び出せるようにするかclassiierを拡張する必要がある
+  opt_enc.setup(enc_model) #RNNENCの中でoptimizerを呼び出せるようにするかclassiierを拡張する必要がある
   opt_enc.add_hook(chainer.optimizer.GradientClipping(args.gradclip))
 
   opt_dec = chainer.optimizers.SGD(lr=0.5)
@@ -90,7 +89,7 @@ def main():
   opt_dec.add_hook(chainer.optimizer.GradientClipping(args.gradclip))
 
   opt_middle = chainer.optimizers.SGD(lr=0.5)
-  opt_middle.setup(middle)
+  opt_middle.setup(middle_c)
   opt_middle.add_hook(chainer.optimizer.GradientClipping(args.gradclip))
 
   for i in range(args.epoch):
@@ -99,20 +98,20 @@ def main():
 
     desc_order_seq(_ja)
     desc_order_seq(_en)
-    rnnenc.reset_state()
-    rnndec.reset_state(target_vocab)
+    enc.reset_state()
+    dec.reset_state(target_vocab)
 
     minibatching_ja = transposer.transpose_sequnce(_ja)
     for seq in minibatching_ja:
       opt_enc.target(seq)
 
-    middle(opt_enc)
+    middle_c(opt_enc)
 
     loss = 0
     minibatching_en = transposer.transpose_sequnce(_en)
 
     for i, seq in enumerate(minibatching_en):
-      loss += opt_dec.target(seq, middle.mid_c, i, middle.dec_h0)
+      loss += opt_dec.target(seq, middle_c.mid_c, i, middle_c.dec_h0)
     print(loss.data)
 
     opt_dec.target.cleargrads()  # Clear the parameter gradients
