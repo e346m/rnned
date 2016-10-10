@@ -128,7 +128,6 @@ def main():
   serializers.save_npz("enc.model", enc_model)
   serializers.save_npz("midlle.model", middle_c)
   print("save the optimizer")
-  serializers.save_npz("rnnlm.state", optimizer)
   serializers.save_npz("dec.state", dec_opt)
   serializers.save_npz("enc.state", enc_opt)
 

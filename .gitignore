@@ -4,3 +4,5 @@ para/
 *.pyc
 ./origlink/*.pyc
 ./partial_model/*.pyc
+*.model
+*.state
