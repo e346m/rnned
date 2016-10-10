@@ -23,13 +23,13 @@ from chainer import training
 from chainer import variable
 from chainer.training import extensions
 
-class RNNED(chainer.Chain):
-  def __init__(self, source_vocab, target_vocab, n_units):
-    super(RNNED, self).__init__(
-    rnnenc = rnnenc.RNNEncoder(source_vocab, n_units),
-    rnndec = rnndec.RNNDecoder(target_vocab, n_units),
-    middle = middle.MiddleC(n_units)
-    )
+#class RNNED(chainer.Chain):
+#  def __init__(self, source_vocab, target_vocab, n_units):
+#    super(RNNED, self).__init__(
+#    rnnenc = rnnenc.RNNEncoder(source_vocab, n_units),
+#    rnndec = rnndec.RNNDecoder(target_vocab, n_units),
+#    middle = middle.MiddleC(n_units)
+#    )
 
 def main():
   parser = argparse.ArgumentParser()
@@ -63,10 +63,15 @@ def main():
   ja, source_vocab = rd.ja_load_data('./ja.utf')
   en, target_vocab = rd.en_load_data('./en.utf')
 
-  rnned = RNNED(source_vocab, target_vocab, args.unit)
-  set_trace()
-  enc_model = ec.EncClassifier(rnnenc)
+  #rnned = RNNED(source_vocab, target_vocab, args.unit)
+
+  rnnenc = rnnenc.RNNEncoder(source_vocab, args.unit),
+  rnndec = rnndec.RNNDecoder(target_vocab, args.unit),
+  middle = middle.MiddleC(args.unit)
+
+  enc_model = ec.encClassifier(rnnenc)
   dec_model = ec.DecClassifier(rnndec)
+  middle = rnned.middle
   transposer = transpose.Transpose()
 
   dec_model.compute_accuracy = False  # we only want the perplexity
@@ -77,7 +82,7 @@ def main():
     enc_model.to_gpu()
 
   opt_enc = chainer.optimizers.SGD(lr=0.5)
-  opt_enc.setup(enc_model) #RNNENCの中でoptimizerを呼び出せるようにするかclassiierを拡張する必要がある
+  opt_enc.setup(rnnenc) #RNNENCの中でoptimizerを呼び出せるようにするかclassiierを拡張する必要がある
   opt_enc.add_hook(chainer.optimizer.GradientClipping(args.gradclip))
 
   opt_dec = chainer.optimizers.SGD(lr=0.5)
