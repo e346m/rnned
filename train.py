@@ -106,13 +106,14 @@ def main():
     for seq in minibatching_ja:
       opt_enc.target(seq)
 
+    set_trace()
     middle_c(opt_enc)
 
     loss = 0
     minibatching_en = transposer.transpose_sequnce(_en)
 
     for i, seq in enumerate(minibatching_en):
-      loss += opt_dec.target(seq, middle_c.mid_c, i, middle_c.dec_h0)
+      loss += opt_dec.target(seq, middle_c, i)
     print(loss.data)
 
     opt_dec.target.cleargrads()  # Clear the parameter gradients
@@ -128,8 +129,8 @@ def main():
   serializers.save_npz("enc.model", enc_model)
   serializers.save_npz("midlle.model", middle_c)
   print("save the optimizer")
-  serializers.save_npz("dec.state", dec_opt)
-  serializers.save_npz("enc.state", enc_opt)
+  serializers.save_npz("dec.state", opt_dec)
+  serializers.save_npz("enc.state", opt_enc)
 
 if __name__ == '__main__':
   main()

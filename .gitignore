@@ -6,3 +6,4 @@ para/
 ./partial_model/*.pyc
 *.model
 *.state
+*.bin

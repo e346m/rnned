@@ -23,9 +23,9 @@ class RNNDecoder(chainer.Chain):
     self.l1.reset_state()
     self.prev_output = np.zeros((20, target_vocab), dtype=np.float32)
 
-  def __call__(self, prev_y_id, cfe, num, dec_h0):
+  def __call__(self, prev_y_id, middle, num):
     y_cswr = self.embed(prev_y_id)
-    h1= self.l1(F.dropout(y_cswr, train=self.train), cfe, num, dec_h0)
-    y = self.l2(h1, self.prev_output, cfe)
+    h1= self.l1(F.dropout(y_cswr, train=self.train), middle.mid_c, num, middle.dec_h0)
+    y = self.l2(h1, self.prev_output, middle.mid_c)
     self.prev_output = y
     return y
