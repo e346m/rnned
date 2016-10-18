@@ -107,7 +107,7 @@ def main():
       opt_enc.target(seq)
 
     set_trace()
-    middle_c(opt_enc)
+    middle_c(opt_enc.target)
 
     loss = 0
     minibatching_en = transposer.transpose_sequnce(_en)

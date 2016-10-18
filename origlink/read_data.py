@@ -1,7 +1,12 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import six.moves.cPickle as pickle
 import numpy as np
 import MeCab
+from collections import Counter
+from itertools import chain
+from ipdb import set_trace
+UNK = "unk"
 
 def en_load_data(filename):
   lines = []
@@ -22,9 +27,15 @@ def ja_load_data(filename):
 def r_info(lines, file_name):
   vocab = {}
   dataset = []
+  flat_lines = chain.from_iterable(lines)
+  count = Counter(flat_lines)
+  #TODO UKNの扱いは1回しか出てきてない単語かそれとも上位~単語以外の単語をuknにするか..
+  UNKS = [k for k, v in count.items() if v == 1]
   for line in lines:
     tmp_line = []
     for word in line:
+      if word in UNKS:
+        word = UNK
       if word not in vocab:
         vocab[word] = len(vocab)
       tmp_line.append(vocab[word])
