@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import six.moves.cPickle as pickle
 import numpy as np
 import MeCab
 from collections import Counter
@@ -41,6 +40,4 @@ def r_info(lines, file_name):
       tmp_line.append(vocab[word])
     dataset.append(np.array(tmp_line, dtype=np.int32))
 
-  with open(file_name, 'wb') as f:
-      pickle.dump(vocab, f)
-  return dataset, len(vocab)
+  return dataset, vocab

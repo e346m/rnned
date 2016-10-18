@@ -22,24 +22,21 @@ import MeCab
 import chainer
 from chainer import serializers
 from chainer import variable
-#from ipdb import set_trace
+from ipdb import set_trace
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dec_model', '-dec', default='',
-                    help='Initialize the model from given file')
-parser.add_argument('--enc_model', '-enc', default='',
-                    help='Initialize the model from given file')
-parser.add_argument('--middle_model', '-mid', default='',
-                    help='Initialize the model from given file')
 parser.add_argument('--unit', '-u', type=int, default=650,
                     help='Number of LSTM units in each layer')
+parser.add_argument('--dir', '-d', default="",
+                    help='Which result data')
+
 parser.set_defaults(test=False)
 args = parser.parse_args()
 
-with open("ja_vocab.bin", "r") as f:
+with open("%s/ja_vocab.bin" %args.dir, "r") as f:
   ja_vocab = pickle.load(f)
 
-with open("en_vocab.bin", "r") as f:
+with open("%s/en_vocab.bin" %args.dir, "r") as f:
   en_vocab = pickle.load(f)
 
 enc = rnnenc.RNNEncoder(len(ja_vocab), args.unit)
@@ -53,17 +50,17 @@ enc_model.train = False
 dec_model.train = False
 dec_model.predictor.reset_state(len(en_vocab))
 
-if args.dec_model:
-    print('Load model from', args.dec_model)
-    serializers.load_npz(args.dec_model, dec_model)
-if args.enc_model:
-    print('Load model from', args.enc_model)
-    serializers.load_npz(args.enc_model, enc_model)
-if args.middle_model:
-    print('Load model from', args.middle_model)
-    serializers.load_npz(args.middle_model, middle_c)
+
+if args.dir:
+    print('Load model from %s/dec.model' %args.dir )
+    serializers.load_npz("%s/dec.model" %args.dir, dec_model)
+    print('Load model from %s/enc.model' %args.dir )
+    serializers.load_npz("%s/enc.model" %args.dir, enc_model)
+    print('Load model from %s/middle.model' %args.dir )
+    serializers.load_npz("%s/middle.model" %args.dir, middle_c)
 
 mt = MeCab.Tagger("-Owakati")
+unk_id = ja_vocab["unk"]
 
 while True:
   print("日本語を入力してください 終了する場合はexitを入力してください")
@@ -73,7 +70,7 @@ while True:
 
   inputs = mt.parse(line).strip().split()
   inputs.append("<eos>")
-  ids = [ja_vocab.get(word, "unk") for word in inputs]
+  ids = [ja_vocab.get(word, unk_id) for word in inputs]
 
   for _id in ids:
     enc_model(np.array([_id], dtype=np.int32))

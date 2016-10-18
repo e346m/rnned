@@ -3,10 +3,13 @@
 from __future__ import division
 from __future__ import print_function
 
+import os
 import sys
 sys.path.append("./origlink")
 sys.path.append("./partial_model")
+import six.moves.cPickle as pickle
 import argparse
+
 import read_data as rd
 import ext_classifier as ec
 import transpose
@@ -16,6 +19,7 @@ import middle
 #from pudb import set_trace
 from ipdb import set_trace
 
+import datetime
 import chainer
 import chainer.functions as F
 import chainer.links as L
@@ -51,6 +55,10 @@ def main():
   parser.set_defaults(test=False)
   parser.add_argument('--unit', '-u', type=int, default=650,
       help='Number of LSTM units in each layer')
+  parser.add_argument('--source', '-s', default="./ja.utf",
+      help='Source file path')
+  parser.add_argument('--target', '-t', default="./en.utf",
+      help='Target file path')
   args = parser.parse_args()
 
   def desc_order_seq(dataset):
@@ -61,13 +69,16 @@ def main():
     offsets = [i * len(dataset) // args.batchsize for i in range(args.batchsize)]
     return [dataset[((itre + offset) % len(dataset))] for offset in offsets]
 
-  ja, source_vocab = rd.ja_load_data('./ja.utf')
-  en, target_vocab = rd.en_load_data('./en.utf')
+  def save_vocab(vocab, file_name):
+    with open(file_name, 'wb') as f:
+        pickle.dump(vocab, f)
+
+  ja, source_vocab = rd.ja_load_data(args.source)
+  en, target_vocab = rd.en_load_data(args.target)
 
   #rnned = RNNED(source_vocab, target_vocab, args.unit)
-
-  enc = rnnenc.RNNEncoder(source_vocab, args.unit)
-  dec = rnndec.RNNDecoder(target_vocab, args.unit)
+  enc = rnnenc.RNNEncoder(len(source_vocab), args.unit)
+  dec = rnndec.RNNDecoder(len(target_vocab), args.unit)
   middle_c = middle.MiddleC(args.unit)
 
   enc_model = ec.EncClassifier(enc)
@@ -100,13 +111,12 @@ def main():
     desc_order_seq(_ja)
     desc_order_seq(_en)
     enc.reset_state()
-    dec.reset_state(target_vocab)
+    dec.reset_state(len(target_vocab))
 
     minibatching_ja = transposer.transpose_sequnce(_ja)
     for seq in minibatching_ja:
       opt_enc.target(seq)
 
-    set_trace()
     middle_c(opt_enc.target)
 
     loss = 0
@@ -124,13 +134,19 @@ def main():
     opt_enc.update()  # Update the parameters
     opt_middle.update()
 
+  path = "./%s"  %datetime.datetime.now().strftime("%s")
   print("save the model")
-  serializers.save_npz("dec.model", dec_model)
-  serializers.save_npz("enc.model", enc_model)
-  serializers.save_npz("midlle.model", middle_c)
+  os.mkdir(path, 0755)
+  serializers.save_npz("./%s/dec.model" %path, dec_model)
+  serializers.save_npz("./%s/enc.model" %path, enc_model)
+  serializers.save_npz("./%s/middle.model" %path, middle_c)
   print("save the optimizer")
-  serializers.save_npz("dec.state", opt_dec)
-  serializers.save_npz("enc.state", opt_enc)
+  serializers.save_npz("./%s/dec.state" %path, opt_dec)
+  serializers.save_npz("./%s/enc.state" %path, opt_enc)
+
+  print("save vocab")
+  save_vocab(source_vocab, "./%s/ja.bin" %path)
+  save_vocab(target_vocab, "./%s/en.bin" %path)
 
 if __name__ == '__main__':
   main()
