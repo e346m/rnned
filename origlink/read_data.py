@@ -12,7 +12,7 @@ def en_load_data(filename):
   for line in open(filename, "r"):
     lines.append(line.lower().replace('\n', ' <eos>').strip().split())
 
-  return r_info(lines, "en_vocab.bin")
+  return r_info(lines)
 
 def ja_load_data(filename):
   mt = MeCab.Tagger("-Owakati")
@@ -21,9 +21,9 @@ def ja_load_data(filename):
   for line in open(filename, "r"):
     lines.append(mt.parse(line).replace('\n', ' <eos>').strip().split())
 
-  return r_info(lines, "ja_vocab.bin")
+  return r_info(lines)
 
-def r_info(lines, file_name):
+def r_info(lines):
   vocab = {}
   dataset = []
   flat_lines = chain.from_iterable(lines)
