@@ -7,6 +7,7 @@ import chainer.functions as F
 import chainer.links as L
 import l_maxout as lm
 import lstm as ll
+from ipdb import set_trace
 
 class RNNDecoder(chainer.Chain):
   def __init__(self, target_vocab, n_units, train=True):
