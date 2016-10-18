@@ -33,10 +33,10 @@ parser.add_argument('--dir', '-d', default="",
 parser.set_defaults(test=False)
 args = parser.parse_args()
 
-with open("%s/ja_vocab.bin" %args.dir, "r") as f:
+with open("%s/ja.bin" %args.dir, "r") as f:
   ja_vocab = pickle.load(f)
 
-with open("%s/en_vocab.bin" %args.dir, "r") as f:
+with open("%s/en.bin" %args.dir, "r") as f:
   en_vocab = pickle.load(f)
 
 enc = rnnenc.RNNEncoder(len(ja_vocab), args.unit)

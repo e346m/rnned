@@ -10,7 +10,7 @@ UNK = "unk"
 def en_load_data(filename):
   lines = []
   for line in open(filename, "r"):
-    lines.append(line.lower().replace('\n', '<eos>').strip().split())
+    lines.append(line.lower().replace('\n', ' <eos>').strip().split())
 
   return r_info(lines, "en_vocab.bin")
 
@@ -19,7 +19,7 @@ def ja_load_data(filename):
 
   lines = []
   for line in open(filename, "r"):
-    lines.append(mt.parse(line).replace('\n', '<eos>').strip().split())
+    lines.append(mt.parse(line).replace('\n', ' <eos>').strip().split())
 
   return r_info(lines, "ja_vocab.bin")
 
