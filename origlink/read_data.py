@@ -5,30 +5,36 @@ import MeCab
 from collections import Counter
 from itertools import chain
 from ipdb import set_trace
+import time
+import pandas as pd
+#TODO UKNの扱いは1回しか出てきてない単語かそれとも上位~単語以外の単語をuknにするか..
 UNK = "unk"
 
+@profile
 def en_load_data(filename):
-  lines = []
-  for line in open(filename, "r"):
-    lines.append(line.lower().replace('\n', ' <eos>').strip().split())
+  start = time.clock()
+  print ("import file\n")
+  fs = np.array(pd.read_table(filename))
+  print ("done: ", time.clock() - start, "\n")
+  return r_info([line[0].lower().strip().split() for line in fs])
 
-  return r_info(lines)
 
+@profile
 def ja_load_data(filename):
-  mt = MeCab.Tagger("-Owakati")
 
-  lines = []
-  for line in open(filename, "r"):
-    lines.append(mt.parse(line).replace('\n', ' <eos>').strip().split())
+  start = time.clock()
+  print ("import file\n")
+  fs = np.array(pd.read_table(filename))
+  print ("done: ", time.clock() - start, "\n")
 
-  return r_info(lines)
+  return r_info([line[0].strip().split() for line in fs])
 
+@profile
 def r_info(lines):
   vocab = {}
   dataset = []
   flat_lines = chain.from_iterable(lines)
   count = Counter(flat_lines)
-  #TODO UKNの扱いは1回しか出てきてない単語かそれとも上位~単語以外の単語をuknにするか..
   UNKS = [k for k, v in count.items() if v == 1]
   for line in lines:
     tmp_line = []
@@ -39,5 +45,4 @@ def r_info(lines):
         vocab[word] = len(vocab)
       tmp_line.append(vocab[word])
     dataset.append(np.array(tmp_line, dtype=np.int32))
-
   return dataset, vocab

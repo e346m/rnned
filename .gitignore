@@ -1,9 +1,11 @@
 *.utf
-para/
 
-*.pyc
 ./origlink/*.pyc
 ./partial_model/*.pyc
+*.pyc
 *.model
 *.state
 *.bin
+*.sentence
+
+log

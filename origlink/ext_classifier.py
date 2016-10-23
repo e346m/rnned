@@ -21,6 +21,7 @@ class Classifier(link.Chain):
 
 
 class DecClassifier(Classifier):
+    @profile
     def __call__(self, *args):
 
         assert len(args) >= 2
@@ -42,6 +43,7 @@ class DecClassifier(Classifier):
         return self.loss
 
 class EncClassifier(Classifier):
+    @profile
     def __call__(self, args):
 
         x = args

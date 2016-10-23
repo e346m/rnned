@@ -9,6 +9,7 @@ sys.path.append("./origlink")
 sys.path.append("./partial_model")
 import six.moves.cPickle as pickle
 import argparse
+import time
 
 import read_data as rd
 import ext_classifier as ec
@@ -61,20 +62,35 @@ def main():
       help='Target file path')
   args = parser.parse_args()
 
+  @profile
   def desc_order_seq(dataset):
     dataset.sort(key=lambda x: len(x))
     dataset.reverse()
 
+  @profile
   def get_lines(dataset, itre):
     offsets = [i * len(dataset) // args.batchsize for i in range(args.batchsize)]
     return [dataset[((itre + offset) % len(dataset))] for offset in offsets]
 
+  @profile
   def save_vocab(vocab, file_name):
     with open(file_name, 'wb') as f:
         pickle.dump(vocab, f)
 
+  @profile
+  def save_sentence(data, file_name):
+    with open(file_name, 'wb') as f:
+        pickle.dump(data, f)
+
+  start = time.clock()
+  print ("start reading ja file\n")
   ja, source_vocab = rd.ja_load_data(args.source)
+  print ("read ja file: ", time.clock() - start, "\n")
+
+  start = time.clock()
+  print ("start reading en file\n")
   en, target_vocab = rd.en_load_data(args.target)
+  print ("read en file: ", time.clock() - start, "\n")
 
   #rnned = RNNED(source_vocab, target_vocab, args.unit)
   enc = rnnenc.RNNEncoder(len(source_vocab), args.unit)
@@ -113,26 +129,50 @@ def main():
     enc.reset_state()
     dec.reset_state(len(target_vocab))
 
+    start = time.clock()
+    print ("ja batchlize\n")
     minibatching_ja = transposer.transpose_sequnce(_ja)
+    print ("done: ", time.clock() - start, "\n")
     for seq in minibatching_ja:
+      start = time.clock()
+      print ("call enc\n")
       opt_enc.target(seq)
+      print ("call enc done: ", time.clock() - start, "\n")
 
     middle_c(opt_enc.target)
 
     loss = 0
+    start = time.clock()
+    print ("en batchlize\n")
     minibatching_en = transposer.transpose_sequnce(_en)
+    print ("done: ", time.clock() - start, "\n")
 
     for i, seq in enumerate(minibatching_en):
+      start = time.clock()
+      print ("call dec\n")
       loss += opt_dec.target(seq, middle_c, i)
+      print ("call dec done: ", time.clock() - start, "\n")
     print(loss.data)
 
     opt_dec.target.cleargrads()  # Clear the parameter gradients
     opt_enc.target.cleargrads()  # Clear the parameter gradients
     opt_middle.target.cleargrads()  # Clear the parameter gradients
+    start = time.clock()
+    print ("backward\n")
     loss.backward()  # Backprop
+    print ("done: ", time.clock() - start, "\n")
+    start = time.clock()
+    print ("dec update\n")
     opt_dec.update()  # Update the parameters
+    print ("done: ", time.clock() - start, "\n")
+    start = time.clock()
+    print ("enc update\n")
     opt_enc.update()  # Update the parameters
+    print ("done: ", time.clock() - start, "\n")
+    start = time.clock()
+    print ("middle update\n")
     opt_middle.update()
+    print ("done: ", time.clock() - start, "\n")
 
   path = "./%s"  %datetime.datetime.now().strftime("%s")
   print("save the model")
@@ -147,6 +187,10 @@ def main():
   print("save vocab")
   save_vocab(source_vocab, "./%s/ja.bin" %path)
   save_vocab(target_vocab, "./%s/en.bin" %path)
+
+  print("save sentence")
+  save_vocab(ja, "./%s/ja.sentence" %path)
+  save_vocab(en, "./%s/en.sentence" %path)
 
 if __name__ == '__main__':
   main()
