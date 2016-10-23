@@ -3,7 +3,7 @@ from chainer.functions.evaluation import accuracy
 from chainer.functions.loss import softmax_cross_entropy
 from chainer import link
 from chainer import reporter
-import ipdb
+from ipdb import set_trace
 
 class Classifier(link.Chain):
 
@@ -35,6 +35,7 @@ class DecClassifier(Classifier):
         if self.y is None:
             self.y = np.zeros(t.shape, dtype=t.dtype)
         self.y = self.predictor(self.y, middle, num)
+        set_trace()
         self.loss = self.lossfun(self.y, t) # compare y' and y
         reporter.report({'loss': self.loss}, t)
         if self.compute_accuracy:

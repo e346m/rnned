@@ -25,6 +25,8 @@ from chainer import variable
 from ipdb import set_trace
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--batchsize', '-b', type=int, default=20,
+    help='Number of examples in each mini batch')
 parser.add_argument('--unit', '-u', type=int, default=650,
                     help='Number of LSTM units in each layer')
 parser.add_argument('--dir', '-d', default="",
@@ -40,7 +42,7 @@ with open("%s/en.bin" %args.dir, "r") as f:
   en_vocab = pickle.load(f)
 
 enc = rnnenc.RNNEncoder(len(ja_vocab), args.unit)
-dec = rnndec.RNNDecoder(len(en_vocab), args.unit)
+dec = rnndec.RNNDecoder(len(en_vocab), args.unit, args.batchsize)
 middle_c = middle.MiddleC(args.unit)
 
 enc_model = ec.EncClassifier(enc)
@@ -48,7 +50,7 @@ dec_model = ec.DecClassifier(dec)
 
 enc_model.train = False
 dec_model.train = False
-dec_model.predictor.reset_state(len(en_vocab))
+dec_model.predictor.reset_state()
 
 
 if args.dir:

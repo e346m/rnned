@@ -28,6 +28,7 @@ from chainer import training
 from chainer import variable
 from chainer import serializers
 from chainer.training import extensions
+import chainer.computational_graph as c
 
 #class RNNED(chainer.Chain):
 #  def __init__(self, source_vocab, target_vocab, n_units):
@@ -62,22 +63,18 @@ def main():
       help='Target file path')
   args = parser.parse_args()
 
-  @profile
   def desc_order_seq(dataset):
     dataset.sort(key=lambda x: len(x))
     dataset.reverse()
 
-  @profile
   def get_lines(dataset, itre):
     offsets = [i * len(dataset) // args.batchsize for i in range(args.batchsize)]
     return [dataset[((itre + offset) % len(dataset))] for offset in offsets]
 
-  @profile
   def save_vocab(vocab, file_name):
     with open(file_name, 'wb') as f:
         pickle.dump(vocab, f)
 
-  @profile
   def save_sentence(data, file_name):
     with open(file_name, 'wb') as f:
         pickle.dump(data, f)
@@ -92,9 +89,11 @@ def main():
   en, target_vocab = rd.en_load_data(args.target)
   print ("read en file: ", time.clock() - start, "\n")
 
+  set_trace()
+
   #rnned = RNNED(source_vocab, target_vocab, args.unit)
   enc = rnnenc.RNNEncoder(len(source_vocab), args.unit)
-  dec = rnndec.RNNDecoder(len(target_vocab), args.unit)
+  dec = rnndec.RNNDecoder(len(target_vocab), args.unit, args.batchsize)
   middle_c = middle.MiddleC(args.unit)
 
   enc_model = ec.EncClassifier(enc)
@@ -127,32 +126,20 @@ def main():
     desc_order_seq(_ja)
     desc_order_seq(_en)
     enc.reset_state()
-    dec.reset_state(len(target_vocab))
+    dec.reset_state()
 
-    start = time.clock()
-    print ("ja batchlize\n")
     minibatching_ja = transposer.transpose_sequnce(_ja)
-    print ("done: ", time.clock() - start, "\n")
     for seq in minibatching_ja:
-      start = time.clock()
-      print ("call enc\n")
       opt_enc.target(seq)
-      print ("call enc done: ", time.clock() - start, "\n")
 
     middle_c(opt_enc.target)
 
     loss = 0
-    start = time.clock()
-    print ("en batchlize\n")
     minibatching_en = transposer.transpose_sequnce(_en)
-    print ("done: ", time.clock() - start, "\n")
 
     for i, seq in enumerate(minibatching_en):
-      start = time.clock()
-      print ("call dec\n")
       loss += opt_dec.target(seq, middle_c, i)
-      print ("call dec done: ", time.clock() - start, "\n")
-    print(loss.data)
+      print(loss.data)
 
     opt_dec.target.cleargrads()  # Clear the parameter gradients
     opt_enc.target.cleargrads()  # Clear the parameter gradients
@@ -173,6 +160,19 @@ def main():
     print ("middle update\n")
     opt_middle.update()
     print ("done: ", time.clock() - start, "\n")
+
+    if i == 1:
+      with open("graph.dot", "w") as o:
+          variable_style = {"shape": "octagon", "fillcolor": "#E0E0E0",
+                            "style": "filled"}
+          function_style = {"shape": "record", "fillcolor": "#6495ED",
+                            "style": "filled"}
+          g = c.build_computational_graph(
+              (loss, ),
+              variable_style=variable_style,
+              function_style=function_style)
+          o.write(g.dump())
+      print("graph generated")
 
   path = "./%s"  %datetime.datetime.now().strftime("%s")
   print("save the model")
