@@ -15,7 +15,6 @@ import ipdb
 
 class LSTMDec(chainer.Chain):
 
-  @profile
   def __init__(self, in_size, out_size,
        lateral_init = None, upward_init = None, diagonal_init = None,
        bias_init = 0, forget_bias_init = 0):
@@ -43,7 +42,6 @@ class LSTMDec(chainer.Chain):
 
     self.reset_state()
 
-  @profile
   def to_cpu(self):
     super(LSTM, self).to_cpu()
     if self.c is not None:
@@ -51,7 +49,6 @@ class LSTMDec(chainer.Chain):
     if self.h is not None:
       self.h.to_cpu()
 
-  @profile
   def to_gpu(self, device=None):
     super(LSTM, self).to_gpu(device)
     if self.c is not None:
@@ -59,7 +56,6 @@ class LSTMDec(chainer.Chain):
     if self.h is not None:
       self.h.to_gpu(device)
 
-  @profile
   def set_state(self, c, h):
     assert isinstance(c, chainer.Variable)
     assert isinstance(h, chainer.Variable)
@@ -83,7 +79,6 @@ class LSTMDec(chainer.Chain):
     self.c = self.h = None
 
 
-  @profile
   def __call__(self, input_y, cfe, num, dec_h0):
 
       def to_fix(batch, val):

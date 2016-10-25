@@ -21,7 +21,6 @@ class Classifier(link.Chain):
 
 
 class DecClassifier(Classifier):
-    @profile
     def __call__(self, *args):
 
         assert len(args) >= 2
@@ -35,7 +34,6 @@ class DecClassifier(Classifier):
         if self.y is None:
             self.y = np.zeros(t.shape, dtype=t.dtype)
         self.y = self.predictor(self.y, middle, num)
-        set_trace()
         self.loss = self.lossfun(self.y, t) # compare y' and y
         reporter.report({'loss': self.loss}, t)
         if self.compute_accuracy:
@@ -44,7 +42,6 @@ class DecClassifier(Classifier):
         return self.loss
 
 class EncClassifier(Classifier):
-    @profile
     def __call__(self, args):
 
         x = args

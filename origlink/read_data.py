@@ -10,7 +10,7 @@ import pandas as pd
 #TODO UKNの扱いは1回しか出てきてない単語かそれとも上位~単語以外の単語をuknにするか..
 UNK = "unk"
 
-@profile
+#@profile
 def en_load_data(filename):
   start = time.clock()
   print ("import file\n")
@@ -19,7 +19,7 @@ def en_load_data(filename):
   return r_info([line[0].lower().strip().split() for line in fs])
 
 
-@profile
+#@profile
 def ja_load_data(filename):
 
   start = time.clock()
@@ -29,7 +29,7 @@ def ja_load_data(filename):
 
   return r_info([line[0].strip().split() for line in fs])
 
-@profile
+#@profile
 def r_info(lines):
   vocab = {}
   dataset = []

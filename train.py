@@ -89,9 +89,7 @@ def main():
   en, target_vocab = rd.en_load_data(args.target)
   print ("read en file: ", time.clock() - start, "\n")
 
-  set_trace()
-
-  #rnned = RNNED(source_vocab, target_vocab, args.unit)
+  #rnned = RNNED(source_vocab, target_vocab, args.unit, args.batchsize)
   enc = rnnenc.RNNEncoder(len(source_vocab), args.unit)
   dec = rnndec.RNNDecoder(len(target_vocab), args.unit, args.batchsize)
   middle_c = middle.MiddleC(args.unit)
@@ -108,7 +106,7 @@ def main():
     enc_model.to_gpu()
 
   opt_enc = chainer.optimizers.SGD(lr=0.5)
-  opt_enc.setup(enc_model) #RNNENCの中でoptimizerを呼び出せるようにするかclassiierを拡張する必要がある
+  opt_enc.setup(enc_model)
   opt_enc.add_hook(chainer.optimizer.GradientClipping(args.gradclip))
 
   opt_dec = chainer.optimizers.SGD(lr=0.5)

@@ -12,7 +12,6 @@ from ipdb import set_trace
 #set_trace()
 
 class FLinear(fl.LinearFunction):
-    @profile
     def check_type_forward(self, in_types):
         n_in = in_types.size()
         type_check.expect(2 <= n_in, n_in <= 3)
@@ -34,7 +33,6 @@ class FLinear(fl.LinearFunction):
             )
 
 class LLinear(linear.Linear):
-    @profile
     def __call__(self, x):
         if self.has_uninitialized_params:
             with cuda.get_device(self._device_id):
@@ -75,7 +73,6 @@ class Maxout(link.Chain):
       self.out_size = out_size
       self.pool_size = pool_size
 
-  @profile
   def __call__(self, hidd, prev_y, cfe):
     batch = hidd.shape[0]
     s_prime = self.upward(hidd) + self.lateral(prev_y[:batch]) + self.diagonal(cfe[:batch])

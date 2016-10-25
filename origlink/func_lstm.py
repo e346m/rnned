@@ -56,7 +56,6 @@ class LSTM(function.Function):
         for i in six.moves.range(2, c_type.ndim.eval()):
             type_check.expect(x_type.shape[i] == c_type.shape[i])
 
-    @profile
     def forward(self, inputs):
         c_prev, y_n_cfe = inputs
         a, i, f, o = _extract_gates(y_n_cfe)
@@ -88,7 +87,6 @@ class LSTM(function.Function):
         self.c = c_next[:batch]
         return c_next, h
 
-    @profile
     def backward(self, inputs, grad_outputs):
         xp = cuda.get_array_module(*inputs)
         c_prev, y_n_cfe = inputs
