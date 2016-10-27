@@ -63,7 +63,7 @@ class Maxout(link.Chain):
               nobias=initial_bias is None, initialW=initialW,
               initial_bias=initial_bias),
           lateral=LLinear(
-              out_size, linear_out_size, wscale,
+              in_size, linear_out_size, wscale,
               nobias=initial_bias is None, initialW=initialW,
               initial_bias=initial_bias),
           diagonal=LLinear(
@@ -74,6 +74,5 @@ class Maxout(link.Chain):
       self.pool_size = pool_size
 
   def __call__(self, hidd, prev_y, cfe):
-    batch = hidd.shape[0]
-    s_prime = self.upward(hidd) + self.lateral(prev_y[:batch]) + self.diagonal(cfe[:batch])
+    s_prime = self.upward(hidd) + self.lateral(prev_y) + self.diagonal(cfe)
     return maxout.maxout(s_prime, self.pool_size)

@@ -26,14 +26,12 @@ class DecClassifier(Classifier):
         assert len(args) >= 2
         t = args[0]
         middle = args[1]
-        num = args[2]
 
         self.y = None
         self.loss = None
         self.accuracy = None
-        if self.y is None:
-            self.y = np.zeros(t.shape, dtype=t.dtype)
-        self.y = self.predictor(self.y, middle, num)
+        self.y = self.predictor(t, middle)
+        set_trace()
         self.loss = self.lossfun(self.y, t) # compare y' and y
         reporter.report({'loss': self.loss}, t)
         if self.compute_accuracy:

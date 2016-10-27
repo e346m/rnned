@@ -9,6 +9,7 @@ from chainer import initializers
 from chainer import link
 from chainer.links.connection import linear
 from chainer import variable
+from ipdb import set_trace
 
 import func_lstm
 import ipdb
@@ -48,6 +49,8 @@ class LSTMDec(chainer.Chain):
       self.c.to_cpu()
     if self.h is not None:
       self.h.to_cpu()
+    if self.cfe is not None:
+      self.cfe.to_cpu()
 
   def to_gpu(self, device=None):
     super(LSTM, self).to_gpu(device)
@@ -55,78 +58,78 @@ class LSTMDec(chainer.Chain):
       self.c.to_gpu(device)
     if self.h is not None:
       self.h.to_gpu(device)
+    if self.cfe is not None:
+      self.cfe.to_gpu(device)
 
-  def set_state(self, c, h):
-    assert isinstance(c, chainer.Variable)
+  # if anther method call set_state restore c state
+  #def set_state(self, c, h, cfe):
+  #  assert isinstance(c, chainer.Variable)
+  #  c_ = c
+  #  if self.xp == numpy:
+  #    c_.to_cpu()
+  #  else:
+  #    c_.to_gpu()
+  #  self.c = c_
+
+  def set_state(self, h, cfe):
     assert isinstance(h, chainer.Variable)
     assert isinstance(cfe, chainer.Variable)
-    c_ = c
     h_ = h
     cfe_ = cfe
     if self.xp == numpy:
-      c_.to_cpu()
       h_.to_cpu()
       cfe_.to_cpu()
     else:
-      c_.to_gpu()
       h_.to_gpu()
       cfe_.to_gpu()
-    self.c = c_
     self.h = h_
     self.cfe = cfe_
 
   def reset_state(self):
-    self.c = self.h = None
+    self.cfe = self.c = self.h = None
 
+  def __call__(self, prev_y):
+    def to_fix(batch, val):
+      return split_axis.split_axis(val, [batch], axis=0)
 
-  def __call__(self, input_y, cfe, num, dec_h0):
-
-      def to_fix(batch, val):
-        return split_axis.split_axis(val, [batch], axis=0)
-
-      batch = input_y.shape[0]
-
-      if cfe.shape[0] > batch:
-        cfe_update, cfe_rest = to_fix(batch, cfe)
-        lstm_in = self.diagonal(cfe_update)
-      else:
-        lstm_in = self.diagonal(cfe)
-
-      if num != 0:
-        if self.prev_y.shape[0] > batch:
-          py_update, py_rest = to_fix(batch, self.prev_y)
-          lstm_in += self.diagonal(py_update)
+    def batch_process(batch, state, link, lstm_in):
+      rest = None
+      if state is not None:
+        size = state.shape[0]
+        if batch == 0:
+          rest = state
+        elif size < batch:
+          msg = ('The batch size of prev_y be equal to or less than the '
+            'size of the previous state h.')
+          raise TypeError(msg)
+        elif size > batch:
+          update, rest = to_fix(batch, state)
+          lstm_in += link(update)
         else:
-          lstm_in += self.upward(self.prev_y)
-          self.h = dec_h0
+          lstm_in += link(state)
+      return lstm_in, rest
 
-      self.prev_y = input_y
-      h_rest = None
-      if self.h is not None:
-          h_size = self.h.shape[0]
-          if batch == 0:
-              h_rest = self.h
-          elif h_size < batch:
-              msg = ('The batch size of prev_y be equal to or less than the '
-                   'size of the previous state h.')
-              raise TypeError(msg)
-          elif h_size > batch:
-              h_update, h_rest = to_fix(batch, self.h)
-              lstm_in += self.lateral(h_update)
-          else:
-              lstm_in += self.lateral(self.h)
-      if self.c is None:
-          xp = self.xp
-          self.c = variable.Variable(
-              xp.zeros((batch, self.state_size), dtype=input_y.dtype),
-              volatile='auto')
-      self.c, y = func_lstm.lstm(self.c, lstm_in)
-
-      if h_rest is None:
-          self.h = y
+    def restore_status(y, state, rest):
+      if rest is None:
+        state = y
       elif len(y.data) == 0:
-          self.h = h_rest
+        state = rest
       else:
-          self.h = concat.concat([y, h_rest], axis=0)
+        state = concat.concat([y, rest], axis=0)
 
-      return y
+    batch = prev_y.shape[0]
+    lstm_in = self.upward(prev_y)
+    lstm_in, cfe_rest = batch_process(batch, self.cfe, self.diagonal, lstm_in)
+    lstm_in, h_rest = batch_process(batch, self.h, self.lateral, lstm_in)
+
+    if self.c is None:
+      xp = self.xp
+      self.c = variable.Variable(
+        xp.zeros((batch, self.state_size), dtype=prev_y.dtype),
+        volatile='auto')
+
+    self.c, y = func_lstm.lstm(self.c, lstm_in)
+
+    self.h = restore_status(y, self.h, h_rest)
+    self.cfe = restore_status(y, self.cfe, cfe_rest)
+    return y

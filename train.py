@@ -131,12 +131,13 @@ def main():
       opt_enc.target(seq)
 
     middle_c(opt_enc.target)
+    opt_dec.target.predictor.set_l1(middle_c)
 
     loss = 0
     minibatching_en = transposer.transpose_sequnce(_en)
 
-    for i, seq in enumerate(minibatching_en):
-      loss += opt_dec.target(seq, middle_c, i)
+    for seq in minibatching_en:
+      loss += opt_dec.target(seq, middle_c)
       print(loss.data)
 
     opt_dec.target.cleargrads()  # Clear the parameter gradients

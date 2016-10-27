@@ -15,19 +15,28 @@ class RNNDecoder(chainer.Chain):
     super(RNNDecoder, self).__init__(
       embed = L.EmbedID(target_vocab, n_units),
       l1 = ll.LSTMDec(n_units, n_units),
-      l2 = lm.Maxout(n_units, target_vocab, 100),
+      l2 = lm.Maxout(n_units, target_vocab, 500),
       )
     for param in self.params():
       param.data[...] = np.random.uniform(-0.1, 0.1, param.data.shape)
       self.train = train
-    self.prev_output = np.zeros((batchsize, target_vocab), dtype=np.float32)
+    self.prev_y_cswr = np.zeros((batchsize, n_units), dtype=np.float32)
 
   def reset_state(self):
     self.l1.reset_state()
 
-  def __call__(self, prev_y_id, middle, num):
-    y_cswr = self.embed(prev_y_id)
-    h1= self.l1(F.dropout(y_cswr, train=self.train), middle.mid_c, num, middle.dec_h0)
-    y = self.l2(h1, self.prev_output, middle.mid_c)
-    self.prev_output = y
+  def set_l1(self, middle):
+    self.l1.set_state(middle.dec_h0, middle.mid_c)
+
+  def set_next_params(self, prev_y_id):
+    self.prev_y_cswr = self.embed(prev_y_id)
+
+  #management hidden state h and c in l1 not in this object
+  #TODO I don't need concatinate? reason why for GPU because different length is not accceptable in GPU unit
+  #[:batch]で計算された時のyのshapeはどうなっている? 元に戻さない理由はどこにあるのか?
+  def __call__(self, prev_y_ids, middle):
+    batch = prev_y_ids.shape[0]
+    h = self.l1(F.dropout(self.prev_y_cswr[:batch], train=self.train))
+    y = self.l2(h[:batch], self.prev_y_cswr[:batch], middle.mid_c[:batch])
+    self.set_next_params(prev_y_ids)
     return y
