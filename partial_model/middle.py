@@ -14,6 +14,9 @@ class MiddleC(chainer.Chain):
       param.data[...] = np.random.uniform(-0.1, 0.1, param.data.shape)
       self.train = train
 
+  def reset_state(self):
+    self.mid_c = self.dec_h0 = None
+
   def __call__(self, target):
     Vh = self.to_c(target.predictor.l1.h)
     self.mid_c = F.tanh(Vh)

@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 import numpy as np
 import sys
 sys.path.append("./origlink")
+
 
 import chainer
 import chainer.functions as F
@@ -20,10 +22,12 @@ class RNNDecoder(chainer.Chain):
     for param in self.params():
       param.data[...] = np.random.uniform(-0.1, 0.1, param.data.shape)
       self.train = train
-    self.prev_y_cswr = np.zeros((batchsize, n_units), dtype=np.float32)
+    self.n_units = n_units
+    self.batchsize = batchsize
 
   def reset_state(self):
     self.l1.reset_state()
+    self.prev_y_cswr = np.zeros((self.batchsize, self.n_units), dtype=np.float32)
 
   def set_l1(self, middle):
     self.l1.set_state(middle.dec_h0, middle.mid_c)
@@ -33,7 +37,6 @@ class RNNDecoder(chainer.Chain):
 
   #management hidden state h and c in l1 not in this object
   #TODO I don't need concatinate? reason why for GPU because different length is not accceptable in GPU unit
-  #[:batch]で計算された時のyのshapeはどうなっている? 元に戻さない理由はどこにあるのか?
   def __call__(self, prev_y_ids, middle):
     batch = prev_y_ids.shape[0]
     h = self.l1(F.dropout(self.prev_y_cswr[:batch], train=self.train))
