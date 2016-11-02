@@ -57,9 +57,9 @@ def main():
   parser.set_defaults(test=False)
   parser.add_argument('--unit', '-u', type=int, default=650,
       help='Number of LSTM units in each layer')
-  parser.add_argument('--source', '-s', default="./ja.utf",
+  parser.add_argument('--source', '-s', default="./input/source.vocab",
       help='Source file path')
-  parser.add_argument('--target', '-t', default="./en.utf",
+  parser.add_argument('--target', '-t', default="./input/target.vocab",
       help='Target file path')
   args = parser.parse_args()
 
@@ -71,19 +71,8 @@ def main():
     offsets = [i * len(dataset) // args.batchsize for i in range(args.batchsize)]
     return [dataset[((itre + offset) % len(dataset))] for offset in offsets]
 
-  def save_vocab(vocab, file_name):
-    with open(file_name, 'wb') as f:
-        pickle.dump(vocab, f)
-
-  def save_sentence(data, file_name):
-    with open(file_name, 'wb') as f:
-        pickle.dump(data, f)
-
-  print ("start reading ja file\n")
-  ja, source_vocab = rd.ja_load_data(args.source)
-
-  print ("start reading en file\n")
-  en, target_vocab = rd.en_load_data(args.target)
+  source_vocab = pickle.load(args.source)
+  target_vocab = pickle.load(args.target)
 
   #rnned = RNNED(source_vocab, target_vocab, args.unit, args.batchsize)
   enc = rnnenc.RNNEncoder(len(source_vocab), args.unit)
@@ -121,6 +110,7 @@ def main():
     desc_order_seq(_en)
     enc.reset_state()
     dec.reset_state()
+    middle_c.reset_state()
 
     minibatching_ja = transposer.transpose_sequnce(_ja)
     for seq in minibatching_ja:
@@ -139,22 +129,14 @@ def main():
     opt_dec.target.cleargrads()  # Clear the parameter gradients
     opt_enc.target.cleargrads()  # Clear the parameter gradients
     opt_middle.target.cleargrads()  # Clear the parameter gradients
+
     start = time.clock()
     print ("backward\n")
     loss.backward()  # Backprop
     print ("done: ", time.clock() - start, "\n")
-    start = time.clock()
-    print ("dec update\n")
     opt_dec.update()  # Update the parameters
-    print ("done: ", time.clock() - start, "\n")
-    start = time.clock()
-    print ("enc update\n")
     opt_enc.update()  # Update the parameters
-    print ("done: ", time.clock() - start, "\n")
-    start = time.clock()
-    print ("middle update\n")
     opt_middle.update()
-    print ("done: ", time.clock() - start, "\n")
 
     if i == 1:
       with open("graph.dot", "w") as o:
@@ -175,17 +157,11 @@ def main():
   serializers.save_npz("./%s/dec.model" %path, dec_model)
   serializers.save_npz("./%s/enc.model" %path, enc_model)
   serializers.save_npz("./%s/middle.model" %path, middle_c)
+
   print("save the optimizer")
   serializers.save_npz("./%s/dec.state" %path, opt_dec)
   serializers.save_npz("./%s/enc.state" %path, opt_enc)
-
-  print("save vocab")
-  save_vocab(source_vocab, "./%s/ja.bin" %path)
-  save_vocab(target_vocab, "./%s/en.bin" %path)
-
-  print("save sentence")
-  save_vocab(ja, "./%s/ja.sentence" %path)
-  save_vocab(en, "./%s/en.sentence" %path)
+  serializers.save_npz("./%s/middle.state" %path, opt_middle)
 
 if __name__ == '__main__':
   main()
