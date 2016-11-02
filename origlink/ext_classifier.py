@@ -31,7 +31,6 @@ class DecClassifier(Classifier):
         self.loss = None
         self.accuracy = None
         self.y = self.predictor(t, middle)
-        set_trace()
         self.loss = self.lossfun(self.y, t) # compare y' and y
         reporter.report({'loss': self.loss}, t)
         if self.compute_accuracy:

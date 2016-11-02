@@ -79,15 +79,11 @@ def main():
     with open(file_name, 'wb') as f:
         pickle.dump(data, f)
 
-  start = time.clock()
   print ("start reading ja file\n")
   ja, source_vocab = rd.ja_load_data(args.source)
-  print ("read ja file: ", time.clock() - start, "\n")
 
-  start = time.clock()
   print ("start reading en file\n")
   en, target_vocab = rd.en_load_data(args.target)
-  print ("read en file: ", time.clock() - start, "\n")
 
   #rnned = RNNED(source_vocab, target_vocab, args.unit, args.batchsize)
   enc = rnnenc.RNNEncoder(len(source_vocab), args.unit)
