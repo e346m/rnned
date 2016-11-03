@@ -21,7 +21,7 @@ class LSTMDec(chainer.Chain):
        bias_init = 0, forget_bias_init = 0):
     super(LSTMDec, self).__init__(
       upward = linear.Linear(in_size, 4 * out_size, initialW = 0),
-      diagonal = linear.Linear(in_size, 4 * out_size, initialW = 0),
+      diagonal = linear.Linear(out_size, 4 * out_size, initialW = 0),
       lateral = linear.Linear(out_size, 4 * out_size, initialW = 0, nobias = True),
     )
     self.state_size = out_size

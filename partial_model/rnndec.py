@@ -22,12 +22,12 @@ class RNNDecoder(chainer.Chain):
     for param in self.params():
       param.data[...] = np.random.uniform(-0.1, 0.1, param.data.shape)
       self.train = train
-    self.n_units = n_units
+    self.emb_units = emb_units
     self.batchsize = batchsize
 
   def reset_state(self):
     self.l1.reset_state()
-    self.prev_y_cswr = np.zeros((self.batchsize, self.n_units), dtype=np.float32)
+    self.prev_y_cswr = np.zeros((self.batchsize, self.emb_units), dtype=np.float32)
 
   def set_l1(self, middle):
     self.l1.set_state(middle.dec_h0, middle.mid_c)

@@ -87,8 +87,8 @@ def main():
     target_vocab = pickle.load(f)
 
   #rnned = RNNED(source_vocab, target_vocab, args.unit, args.batchsize)
-  enc = rnnenc.RNNEncoder(len(source_vocab), emb_unit, args.unit)
-  dec = rnndec.RNNDecoder(len(target_vocab), emb_unit, args.unit, args.batchsize)
+  enc = rnnenc.RNNEncoder(len(source_vocab), args.emb_unit, args.unit)
+  dec = rnndec.RNNDecoder(len(target_vocab), args.emb_unit, args.unit, args.batchsize)
   middle_c = middle.MiddleC(args.unit)
 
   enc_model = ec.EncClassifier(enc)
@@ -135,7 +135,7 @@ def main():
     minibatching_t = transposer.transpose_sequnce(_t)
 
     for seq in minibatching_t:
-      loss += opt_dec.target(seq, middle_c)
+      loss += opt_dec.target(seq[::-1], middle_c)
       print(loss.data)
 
     opt_dec.target.cleargrads()  # Clear the parameter gradients
