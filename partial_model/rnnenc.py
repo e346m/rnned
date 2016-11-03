@@ -4,10 +4,10 @@ import chainer
 import chainer.links as L
 import chainer.functions as F
 class RNNEncoder(chainer.Chain):
-  def __init__(self, source_vocab, n_units, train=True):
+  def __init__(self, source_vocab, emb_units, n_units, train=True):
     super(RNNEncoder, self).__init__(
-      embed = L.EmbedID(source_vocab, n_units),
-      l1 = L.LSTM(n_units, n_units),
+      embed = L.EmbedID(source_vocab, emb_units),
+      l1 = L.LSTM(emb_units, n_units),
       )
     for param in self.params():
       param.data[...] = np.random.uniform(-0.1, 0.1, param.data.shape)

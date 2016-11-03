@@ -13,10 +13,10 @@ from chainer.functions.activation import softmax
 from ipdb import set_trace
 
 class RNNDecoder(chainer.Chain):
-  def __init__(self, target_vocab, n_units, batchsize, train=True):
+  def __init__(self, target_vocab, emb_units, n_units, batchsize, train=True):
     super(RNNDecoder, self).__init__(
-      embed = L.EmbedID(target_vocab, n_units),
-      l1 = ll.LSTMDec(n_units, n_units),
+      embed = L.EmbedID(target_vocab, emb_units),
+      l1 = ll.LSTMDec(emb_units, n_units),
       l2 = lm.Maxout(n_units, target_vocab, 500),
       )
     for param in self.params():
