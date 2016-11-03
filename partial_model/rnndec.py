@@ -11,6 +11,7 @@ import l_maxout as lm
 import lstm as ll
 from chainer.functions.activation import softmax
 from ipdb import set_trace
+from chainer import cuda
 
 class RNNDecoder(chainer.Chain):
   def __init__(self, target_vocab, n_units, batchsize, train=True):
@@ -27,7 +28,8 @@ class RNNDecoder(chainer.Chain):
 
   def reset_state(self):
     self.l1.reset_state()
-    self.prev_y_cswr = np.zeros((self.batchsize, self.n_units), dtype=np.float32)
+    y_cpu = np.zeros((self.batchsize, self.n_units), dtype=np.float32)
+    self.prev_y_cswr =  cuda.to_gpu(y_cpu, device=0)
 
   def set_l1(self, middle):
     self.l1.set_state(middle.dec_h0, middle.mid_c)

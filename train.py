@@ -28,7 +28,8 @@ from chainer import training
 from chainer import variable
 from chainer import serializers
 from chainer.training import extensions
-import chainer.computational_graph as c
+from chainer import cuda
+#import chainer.computational_graph as c
 
 #class RNNED(chainer.Chain):
 #  def __init__(self, source_vocab, target_vocab, n_units):
@@ -79,9 +80,9 @@ def main():
     s = pickle.load(f)
   with open(args.target_s, "r") as f:
     t = pickle.load(f)
-  with open(args.source_s, "r") as f:
+  with open(args.source_v, "r") as f:
     source_vocab = pickle.load(f)
-  with open(args.target_s, "r") as f:
+  with open(args.target_v, "r") as f:
     target_vocab = pickle.load(f)
 
   #rnned = RNNED(source_vocab, target_vocab, args.unit, args.batchsize)
@@ -99,6 +100,7 @@ def main():
     chainer.cuda.get_device(args.gpu).use()  # make the GPU current
     dec_model.to_gpu()
     enc_model.to_gpu()
+    middle_c.to_gpu()
 
   opt_enc = chainer.optimizers.SGD(lr=0.5)
   opt_enc.setup(enc_model)
@@ -133,7 +135,8 @@ def main():
     minibatching_t = transposer.transpose_sequnce(_t)
 
     for seq in minibatching_t:
-      loss += opt_dec.target(seq, middle_c)
+      seq_g = cuda.to_gpu(seq, device=0)
+      loss += opt_dec.target(seq_g, middle_c)
       print(loss.data)
 
     opt_dec.target.cleargrads()  # Clear the parameter gradients

@@ -44,7 +44,7 @@ class LSTMDec(chainer.Chain):
     self.reset_state()
 
   def to_cpu(self):
-    super(LSTM, self).to_cpu()
+    super(LSTMDec, self).to_cpu()
     if self.c is not None:
       self.c.to_cpu()
     if self.h is not None:
@@ -53,7 +53,7 @@ class LSTMDec(chainer.Chain):
       self.cfe.to_cpu()
 
   def to_gpu(self, device=None):
-    super(LSTM, self).to_gpu(device)
+    super(LSTMDec, self).to_gpu(device)
     if self.c is not None:
       self.c.to_gpu(device)
     if self.h is not None:
