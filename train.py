@@ -79,9 +79,9 @@ def main():
     s = pickle.load(f)
   with open(args.target_s, "r") as f:
     t = pickle.load(f)
-  with open(args.source_s, "r") as f:
+  with open(args.source_v, "r") as f:
     source_vocab = pickle.load(f)
-  with open(args.target_s, "r") as f:
+  with open(args.target_v, "r") as f:
     target_vocab = pickle.load(f)
 
   #rnned = RNNED(source_vocab, target_vocab, args.unit, args.batchsize)
