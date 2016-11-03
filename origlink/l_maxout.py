@@ -40,7 +40,6 @@ class LLinear(linear.Linear):
         return FLinear()(x, self.W, self.b)
 
 class Maxout(link.Chain):
-  @profile
   def __init__(self, in_size, out_size, pool_size,
                wscale=1, initialW=None, initial_bias=0):
       linear_out_size = out_size * pool_size
