@@ -40,7 +40,7 @@ import chainer.computational_graph as c
 
 def main():
   parser = argparse.ArgumentParser()
-  parser.add_argument('--batchsize', '-b', type=int, default=20,
+  parser.add_argument('--batchsize', '-b', type=int, default=64,
       help='Number of examples in each mini batch')
   parser.add_argument('--epoch', '-e', type=int, default=39,
       help='Number of sweeps over the dataset to train')
@@ -55,7 +55,9 @@ def main():
   parser.add_argument('--test', action='store_true',
       help='Use tiny datasets for quick tests')
   parser.set_defaults(test=False)
-  parser.add_argument('--unit', '-u', type=int, default=650,
+  parser.add_argument('--unit', '-u', type=int, default=1000,
+      help='Number of LSTM units in each layer')
+  parser.add_argument('--emb_unit', '-eu', type=int, default=100,
       help='Number of LSTM units in each layer')
   parser.add_argument('--source_s', '-ss', default="./input/source.sentence",
       help='Source file path')
@@ -85,8 +87,8 @@ def main():
     target_vocab = pickle.load(f)
 
   #rnned = RNNED(source_vocab, target_vocab, args.unit, args.batchsize)
-  enc = rnnenc.RNNEncoder(len(source_vocab), args.unit)
-  dec = rnndec.RNNDecoder(len(target_vocab), args.unit, args.batchsize)
+  enc = rnnenc.RNNEncoder(len(source_vocab), emb_unit, args.unit)
+  dec = rnndec.RNNDecoder(len(target_vocab), emb_unit, args.unit, args.batchsize)
   middle_c = middle.MiddleC(args.unit)
 
   enc_model = ec.EncClassifier(enc)
