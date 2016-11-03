@@ -73,6 +73,7 @@ class Maxout(link.Chain):
       self.out_size = out_size
       self.pool_size = pool_size
 
+  @profile
   def __call__(self, hidd, prev_y, cfe):
     s_prime = self.upward(hidd) + self.lateral(prev_y) + self.diagonal(cfe)
     return maxout.maxout(s_prime, self.pool_size)
