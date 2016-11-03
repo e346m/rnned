@@ -57,9 +57,13 @@ def main():
   parser.set_defaults(test=False)
   parser.add_argument('--unit', '-u', type=int, default=650,
       help='Number of LSTM units in each layer')
-  parser.add_argument('--source', '-s', default="./input/source.vocab",
+  parser.add_argument('--source_s', '-ss', default="./input/source.sentence",
       help='Source file path')
-  parser.add_argument('--target', '-t', default="./input/target.vocab",
+  parser.add_argument('--target_s', '-ts', default="./input/target.sentence",
+      help='Target file path')
+  parser.add_argument('--source_v', '-sv', default="./input/source.vocab",
+      help='Source file path')
+  parser.add_argument('--target_v', '-tv', default="./input/target.vocab",
       help='Target file path')
   args = parser.parse_args()
 
@@ -71,8 +75,14 @@ def main():
     offsets = [i * len(dataset) // args.batchsize for i in range(args.batchsize)]
     return [dataset[((itre + offset) % len(dataset))] for offset in offsets]
 
-  source_vocab = pickle.load(args.source)
-  target_vocab = pickle.load(args.target)
+  with open(args.source_s, "r") as f:
+    s = pickle.load(f)
+  with open(args.target_s, "r") as f:
+    t = pickle.load(f)
+  with open(args.source_s, "r") as f:
+    source_vocab = pickle.load(f)
+  with open(args.target_s, "r") as f:
+    target_vocab = pickle.load(f)
 
   #rnned = RNNED(source_vocab, target_vocab, args.unit, args.batchsize)
   enc = rnnenc.RNNEncoder(len(source_vocab), args.unit)
@@ -103,26 +113,26 @@ def main():
   opt_middle.add_hook(chainer.optimizer.GradientClipping(args.gradclip))
 
   for i in range(args.epoch):
-    _ja = get_lines(ja, i)
-    _en = get_lines(en, i)
+    _s = get_lines(s, i)
+    _t = get_lines(t, i)
 
-    desc_order_seq(_ja)
-    desc_order_seq(_en)
+    desc_order_seq(_s)
+    desc_order_seq(_t)
     enc.reset_state()
     dec.reset_state()
     middle_c.reset_state()
 
-    minibatching_ja = transposer.transpose_sequnce(_ja)
-    for seq in minibatching_ja:
+    minibatching_s = transposer.transpose_sequnce(_s)
+    for seq in minibatching_s:
       opt_enc.target(seq)
 
     middle_c(opt_enc.target)
     opt_dec.target.predictor.set_l1(middle_c)
 
     loss = 0
-    minibatching_en = transposer.transpose_sequnce(_en)
+    minibatching_t = transposer.transpose_sequnce(_t)
 
-    for seq in minibatching_en:
+    for seq in minibatching_t:
       loss += opt_dec.target(seq, middle_c)
       print(loss.data)
 
@@ -138,18 +148,18 @@ def main():
     opt_enc.update()  # Update the parameters
     opt_middle.update()
 
-    if i == 1:
-      with open("graph.dot", "w") as o:
-          variable_style = {"shape": "octagon", "fillcolor": "#E0E0E0",
-                            "style": "filled"}
-          function_style = {"shape": "record", "fillcolor": "#6495ED",
-                            "style": "filled"}
-          g = c.build_computational_graph(
-              (loss, ),
-              variable_style=variable_style,
-              function_style=function_style)
-          o.write(g.dump())
-      print("graph generated")
+    #if i == 1:
+    #  with open("graph.dot", "w") as o:
+    #      variable_style = {"shape": "octagon", "fillcolor": "#E0E0E0",
+    #                        "style": "filled"}
+    #      function_style = {"shape": "record", "fillcolor": "#6495ED",
+    #                        "style": "filled"}
+    #      g = c.build_computational_graph(
+    #          (loss, ),
+    #          variable_style=variable_style,
+    #          function_style=function_style)
+    #      o.write(g.dump())
+    #  print("graph generated")
 
   path = "./%s"  %datetime.datetime.now().strftime("%s")
   print("save the model")

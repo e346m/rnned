@@ -12,6 +12,9 @@ from ipdb import set_trace
 UNK = "unk"
 
 class Load(object):
+  def __init__(self, dump_label):
+    self.dump_label = dump_label
+
   def normalize_load_data(self, filename):
     fs = np.array(pd.read_table(filename))
     self.r_info([line[0].lower().strip().split() for line in fs])
@@ -35,18 +38,19 @@ class Load(object):
           vocab[word] = len(vocab)
         tmp_line.append(vocab[word])
       dataset.append(np.array(tmp_line, dtype=np.int32))
-    with open("./input/{}.sentence", self.dump_label, "wb") as f:
+    with open("./input/%s.sentence" %self.dump_label, "wb") as f:
       pickle.dump(dataset, f)
-    with open("./input/{}.vocab", self.dump_label, "wb") as f:
+    with open("./input/%s.vocab" %self.dump_label, "wb") as f:
       pickle.dump(vocab, f)
 
 class SourceLoader(Load):
   def __init__(self, dump_label="source"):
-    super(SourceLoader, self).__init__()
+    super(SourceLoader, self).__init__(dump_label)
+
 
 class TargetLoader(Load):
   def __init__(self, dump_label="target"):
-    super(TargetLoader, self).__init__()
+    super(TargetLoader, self).__init__(dump_label)
 
 def main():
   parser = argparse.ArgumentParser()
