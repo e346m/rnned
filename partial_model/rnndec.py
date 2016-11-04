@@ -45,6 +45,6 @@ class RNNDecoder(chainer.Chain):
   def __call__(self, prev_y_ids, middle):
     batch = prev_y_ids.shape[0]
     h = self.l1(F.dropout(self.prev_y_cswr[:batch], train=self.train))
-    y = self.l2(h[:batch], self.prev_y_cswr[:batch], middle.mid_c[:batch])
+    y = self.l2(F.dropout(h[:batch]), F.dropout(self.prev_y_cswr[:batch]), F.dropout(middle.mid_c[:batch]))
     self.set_next_params(prev_y_ids)
     return y

@@ -17,6 +17,7 @@ import transpose
 import rnndec
 import rnnenc
 import middle
+import psutil
 #from pudb import set_trace
 from ipdb import set_trace
 
@@ -77,6 +78,11 @@ def main():
     offsets = [i * len(dataset) // args.batchsize for i in range(args.batchsize)]
     return [dataset[((itre + offset) % len(dataset))] for offset in offsets]
 
+  def print_memory(phase):
+    print(phase )
+    print(psutil.virtual_memory())
+    print(psutil.swap_memory())
+
   with open(args.source_s, "r") as f:
     s = pickle.load(f)
   with open(args.target_s, "r") as f:
@@ -87,9 +93,12 @@ def main():
     target_vocab = pickle.load(f)
 
   #rnned = RNNED(source_vocab, target_vocab, args.unit, args.batchsize)
+  print_memory("before_init")
   enc = rnnenc.RNNEncoder(len(source_vocab), args.emb_unit, args.unit)
   dec = rnndec.RNNDecoder(len(target_vocab), args.emb_unit, args.unit, args.batchsize)
   middle_c = middle.MiddleC(args.unit)
+
+  print_memory("after_init")
 
   enc_model = ec.EncClassifier(enc)
   dec_model = ec.DecClassifier(dec)
@@ -115,27 +124,38 @@ def main():
   opt_middle.add_hook(chainer.optimizer.GradientClipping(args.gradclip))
 
   for i in range(args.epoch):
+    print_memory("before_get_line")
     _s = get_lines(s, i)
     _t = get_lines(t, i)
+    print_memory("after_get_line and before_sort")
 
     desc_order_seq(_s)
     desc_order_seq(_t)
+
+    print_memory("after_sort and before_toranspose")
     enc.reset_state()
     dec.reset_state()
     middle_c.reset_state()
 
     minibatching_s = transposer.transpose_sequnce(_s)
+    print_memory("after_toranspose")
     for seq in minibatching_s:
+      print_memory("before_call_model")
       opt_enc.target(seq)
+      print_memory("after_call_model")
 
     middle_c(opt_enc.target)
     opt_dec.target.predictor.set_l1(middle_c)
 
     loss = 0
+    print_memory("before_toranspose")
     minibatching_t = transposer.transpose_sequnce(_t)
+    print_memory("after_toranspose")
 
     for seq in minibatching_t:
+      print_memory("before_call_model")
       loss += opt_dec.target(seq[::-1], middle_c)
+      print_memory("after_call_model")
       print(loss.data)
 
     opt_dec.target.cleargrads()  # Clear the parameter gradients
