@@ -14,22 +14,22 @@ from ipdb import set_trace
 
 class RNNDecoder(chainer.Chain):
   @profile
-  def __init__(self, target_vocab, n_units, batchsize, train=True):
+  def __init__(self, target_vocab, emb_units, n_units, batchsize, train=True):
     super(RNNDecoder, self).__init__(
-      embed = L.EmbedID(target_vocab, n_units),
-      l1 = ll.LSTMDec(n_units, n_units),
-      l2 = lm.Maxout(n_units, target_vocab, 500),
+      embed = L.EmbedID(target_vocab, emb_units),
+      l1 = ll.LSTMDec(emb_units, n_units),
+      l2 = lm.Maxout(n_units, emb_units, target_vocab, 500),
       )
     for param in self.params():
       param.data[...] = np.random.uniform(-0.1, 0.1, param.data.shape)
       self.train = train
-    self.n_units = n_units
+    self.emb_units = emb_units
     self.batchsize = batchsize
 
   @profile
   def reset_state(self):
     self.l1.reset_state()
-    self.prev_y_cswr = np.zeros((self.batchsize, self.n_units), dtype=np.float32)
+    self.prev_y_cswr = np.zeros((self.batchsize, self.emb_units), dtype=np.float32)
 
   @profile
   def set_l1(self, middle):

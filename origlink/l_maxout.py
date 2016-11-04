@@ -41,7 +41,7 @@ class LLinear(linear.Linear):
 
 class Maxout(link.Chain):
   @profile
-  def __init__(self, in_size, out_size, pool_size,
+  def __init__(self, in_size, emb_size ,out_size, pool_size,
                wscale=1, initialW=None, initial_bias=0):
       linear_out_size = out_size * pool_size
       if initialW is not None:
@@ -63,7 +63,7 @@ class Maxout(link.Chain):
               nobias=initial_bias is None, initialW=initialW,
               initial_bias=initial_bias),
           lateral=LLinear(
-              in_size, linear_out_size, wscale,
+              emb_size, linear_out_size, wscale,
               nobias=initial_bias is None, initialW=initialW,
               initial_bias=initial_bias),
           diagonal=LLinear(
