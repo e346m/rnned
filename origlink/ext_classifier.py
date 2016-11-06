@@ -49,3 +49,8 @@ class EncClassifier(Classifier):
         self.loss = None
         self.accuracy = None
         self.y = self.predictor(x)
+
+        type(in_data[0])
+        type(in_data[1])
+        type(out_grad)
+

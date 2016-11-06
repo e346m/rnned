@@ -1,4 +1,5 @@
 import numpy as np
+import psutil
 
 import chainer
 import chainer.links as L
@@ -18,8 +19,16 @@ class RNNEncoder(chainer.Chain):
   def reset_state(self):
     self.l1.reset_state()
 
+  def print_memory(self, phase):
+    print(phase )
+    print(psutil.virtual_memory())
+    print(psutil.swap_memory())
+
   @profile
   def __call__(self, x):
+    self.print_memory("before_cswr")
     x_cswr = self.embed(x)
+    self.print_memory("after_cswr")
     self.l1(F.dropout(x_cswr, train=self.train))
+    self.print_memory("after_lstm")
     return None

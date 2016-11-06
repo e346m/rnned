@@ -1,7 +1,13 @@
 import numpy as np
 
+import sys
+sys.path.append("./origlink")
+import test_m
+import psutil
+import chainer.functions as F
+
 from chainer import cuda
-from chainer.functions.activation import maxout
+#from chainer.functions.activation import maxout
 from chainer import link
 from chainer.links.connection import linear
 from chainer.functions.connection import linear as fl
@@ -73,7 +79,17 @@ class Maxout(link.Chain):
       self.out_size = out_size
       self.pool_size = pool_size
 
+  def reset_state(self):
+    self.s_prime = None
+
+  def print_memory(self, phase):
+    print(phase )
+    print(psutil.virtual_memory())
+    print(psutil.swap_memory())
+
   @profile
   def __call__(self, hidd, prev_y, cfe):
-    s_prime = self.upward(hidd) + self.lateral(prev_y) + self.diagonal(cfe)
-    return maxout.maxout(s_prime, self.pool_size)
+    self.print_memory("before_sprime")
+    self.s_prime = self.upward(hidd) + self.lateral(prev_y) + self.diagonal(cfe)
+    self.print_memory("after_sprime")
+    return test_m.maxout(F.dropout(self.s_prime, train=True), self.pool_size)

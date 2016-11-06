@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import sys
-sys.path.append("./origlink")
-
+import psutil
 
 import chainer
 import chainer.functions as F
@@ -29,7 +28,9 @@ class RNNDecoder(chainer.Chain):
   @profile
   def reset_state(self):
     self.l1.reset_state()
+    self.l2.reset_state()
     self.prev_y_cswr = np.zeros((self.batchsize, self.emb_units), dtype=np.float32)
+
 
   @profile
   def set_l1(self, middle):
@@ -39,12 +40,17 @@ class RNNDecoder(chainer.Chain):
   def set_next_params(self, prev_y_id):
     self.prev_y_cswr = self.embed(prev_y_id)
 
+  def print_memory(self, phase):
+    print(phase )
+    print(psutil.virtual_memory())
+    print(psutil.swap_memory())
+
   #management hidden state h and c in l1 not in this object
   #TODO I don't need concatinate? reason why for GPU because different length is not accceptable in GPU unit
   @profile
   def __call__(self, prev_y_ids, middle):
     batch = prev_y_ids.shape[0]
     h = self.l1(F.dropout(self.prev_y_cswr[:batch], train=self.train))
-    y = self.l2(F.dropout(h[:batch]), F.dropout(self.prev_y_cswr[:batch]), F.dropout(middle.mid_c[:batch]))
+    y = self.l2(h[:batch], self.prev_y_cswr[:batch], middle.mid_c[:batch])
     self.set_next_params(prev_y_ids)
     return y

@@ -140,9 +140,7 @@ def main():
     minibatching_s = transposer.transpose_sequnce(_s)
     print_memory("after_toranspose")
     for seq in minibatching_s:
-      print_memory("before_call_model")
       opt_enc.target(seq)
-      print_memory("after_call_model")
 
     middle_c(opt_enc.target)
     opt_dec.target.predictor.set_l1(middle_c)
@@ -153,9 +151,7 @@ def main():
     print_memory("after_toranspose")
 
     for seq in minibatching_t:
-      print_memory("before_call_model")
       loss += opt_dec.target(seq[::-1], middle_c)
-      print_memory("after_call_model")
       print(loss.data)
 
     opt_dec.target.cleargrads()  # Clear the parameter gradients
