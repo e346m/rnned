@@ -18,7 +18,7 @@ class RNNDecoder(chainer.Chain):
     super(RNNDecoder, self).__init__(
       embed = L.EmbedID(target_vocab, emb_units),
       l1 = ll.LSTMDec(emb_units, n_units),
-      l2 = lm.Maxout(n_units, emb_units, target_vocab, 500),
+      l2 = lm.Maxout(n_units, emb_units, target_vocab, 50),
       )
     for param in self.params():
       param.data[...] = np.random.uniform(-0.1, 0.1, param.data.shape)
