@@ -27,8 +27,9 @@ import chainer.links as L
 from chainer import training
 from chainer import variable
 from chainer import serializers
+from chainer import cuda
 from chainer.training import extensions
-import chainer.computational_graph as c
+#import chainer.computational_graph as c
 
 #class RNNED(chainer.Chain):
 #  def __init__(self, source_vocab, target_vocab, n_units):
@@ -78,9 +79,9 @@ def main():
     return [dataset[((itre + offset) % len(dataset))] for offset in offsets]
 
   with open(args.source_s, "r") as f:
-    s = pickle.load(f)
+    ss = pickle.load(f)
   with open(args.target_s, "r") as f:
-    t = pickle.load(f)
+    ts = pickle.load(f)
   with open(args.source_v, "r") as f:
     source_vocab = pickle.load(f)
   with open(args.target_v, "r") as f:
@@ -88,7 +89,7 @@ def main():
 
   #rnned = RNNED(source_vocab, target_vocab, args.unit, args.batchsize)
   enc = rnnenc.RNNEncoder(len(source_vocab), args.emb_unit, args.unit)
-  dec = rnndec.RNNDecoder(len(target_vocab), args.emb_unit, args.unit, args.batchsize)
+  dec = rnndec.RNNDecoder(len(target_vocab), args.emb_unit, args.unit, args.batchsize, args.gpu)
   middle_c = middle.MiddleC(args.unit)
 
   enc_model = ec.EncClassifier(enc)
@@ -101,6 +102,7 @@ def main():
     chainer.cuda.get_device(args.gpu).use()  # make the GPU current
     dec_model.to_gpu()
     enc_model.to_gpu()
+    middle_c.to_gpu()
 
   opt_enc = chainer.optimizers.SGD(lr=0.5)
   opt_enc.setup(enc_model)
@@ -115,8 +117,8 @@ def main():
   opt_middle.add_hook(chainer.optimizer.GradientClipping(args.gradclip))
 
   for i in range(args.epoch):
-    _s = get_lines(s, i)
-    _t = get_lines(t, i)
+    _s = get_lines(ss, i)
+    _t = get_lines(ts, i)
 
     desc_order_seq(_s)
     desc_order_seq(_t)
@@ -126,6 +128,9 @@ def main():
 
     minibatching_s = transposer.transpose_sequnce(_s)
     for seq in minibatching_s:
+      if args.gpu >= 0:
+        set_trace()
+        seq = cuda.to_gpu(seq, device=args.gpu)
       opt_enc.target(seq)
 
     middle_c(opt_enc.target)
@@ -135,9 +140,11 @@ def main():
     minibatching_t = transposer.transpose_sequnce(_t)
 
     for seq in minibatching_t:
+      if args.gpu >= 0:
+        seq = cuda.to_gpu(seq, device=args.gpu)
       loss += opt_dec.target(seq[::-1], middle_c)
-      print(loss.data)
 
+    print(loss.data)
     opt_dec.target.cleargrads()  # Clear the parameter gradients
     opt_enc.target.cleargrads()  # Clear the parameter gradients
     opt_middle.target.cleargrads()  # Clear the parameter gradients
