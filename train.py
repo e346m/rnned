@@ -17,7 +17,6 @@ import transpose
 import rnndec
 import rnnenc
 import middle
-#from pudb import set_trace
 from ipdb import set_trace
 
 import datetime
@@ -96,8 +95,8 @@ def main():
   dec_model = ec.DecClassifier(dec)
   transposer = transpose.Transpose()
 
-  dec_model.compute_accuracy = False  # we only want the perplexity
-  enc_model.compute_accuracy = False  # we only want the perplexity
+  dec_model.compute_accuracy = False
+  enc_model.compute_accuracy = False
   if args.gpu >= 0:
     chainer.cuda.get_device(args.gpu).use()  # make the GPU current
     dec_model.to_gpu()
@@ -124,7 +123,6 @@ def main():
     desc_order_seq(_t)
     enc.reset_state()
     dec.reset_state()
-    middle_c.reset_state()
 
     minibatching_s = transposer.transpose_sequnce(_s)
     for seq in minibatching_s:
@@ -145,9 +143,9 @@ def main():
       loss += opt_dec.target(seq[::-1], middle_c)
 
     print(loss.data)
-    opt_dec.target.cleargrads()  # Clear the parameter gradients
-    opt_enc.target.cleargrads()  # Clear the parameter gradients
-    opt_middle.target.cleargrads()  # Clear the parameter gradients
+    opt_dec.target.cleargrads()
+    opt_enc.target.cleargrads()
+    opt_middle.target.cleargrads()
 
     start = time.clock()
     print ("backward\n")
