@@ -103,15 +103,15 @@ def main():
     enc_model.to_gpu()
     middle_c.to_gpu()
 
-  opt_enc = chainer.optimizers.SGD(lr=0.5)
+  opt_enc = chainer.optimizers.AdaDelta()
   opt_enc.setup(enc_model)
   opt_enc.add_hook(chainer.optimizer.GradientClipping(args.gradclip))
 
-  opt_dec = chainer.optimizers.SGD(lr=0.5)
+  opt_dec = chainer.optimizers.AdaDelta()
   opt_dec.setup(dec_model)
   opt_dec.add_hook(chainer.optimizer.GradientClipping(args.gradclip))
 
-  opt_middle = chainer.optimizers.SGD(lr=0.5)
+  opt_middle = chainer.optimizers.AdaDelta()
   opt_middle.setup(middle_c)
   opt_middle.add_hook(chainer.optimizer.GradientClipping(args.gradclip))
 

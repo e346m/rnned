@@ -9,7 +9,8 @@ from collections import Counter
 
 from ipdb import set_trace
 #TODO UKNの扱いは1回しか出てきてない単語かそれとも上位~単語以外の単語をuknにするか..
-UNK = "unk"
+UNK = "<unk>"
+V_SIZE = 15000
 
 class Load(object):
   def __init__(self, dump_label):
@@ -27,17 +28,17 @@ class Load(object):
     vocab = {}
     dataset = []
     flat_lines = chain.from_iterable(lines)
-    count = Counter(flat_lines)
-    UNKS = [k for k, v in count.items() if v == 1]
+    count =[k for k, v in Counter(flat_lines).most_common(V_SIZE)]
     for line in lines:
       tmp_line = []
       for word in line:
-        if word in UNKS:
+        if word not in count:
           word = UNK
         if word not in vocab:
           vocab[word] = len(vocab)
         tmp_line.append(vocab[word])
       dataset.append(np.array(tmp_line, dtype=np.int32))
+
     with open("./input/%s.sentence" %self.dump_label, "wb") as f:
       pickle.dump(dataset, f)
     with open("./input/%s.vocab" %self.dump_label, "wb") as f:
@@ -46,7 +47,6 @@ class Load(object):
 class SourceLoader(Load):
   def __init__(self, dump_label="source"):
     super(SourceLoader, self).__init__(dump_label)
-
 
 class TargetLoader(Load):
   def __init__(self, dump_label="target"):
