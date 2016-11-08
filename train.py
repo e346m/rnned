@@ -131,7 +131,7 @@ def main():
         seq = cuda.to_gpu(seq, device=args.gpu)
       opt_enc.target(seq)
 
-    middle_c(opt_enc.target)
+    middle_c(opt_enc.target.predictor.l1.h)
     opt_dec.target.predictor.set_l1(middle_c)
 
     loss = 0
