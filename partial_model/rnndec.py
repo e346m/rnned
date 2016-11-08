@@ -18,7 +18,7 @@ class RNNDecoder(chainer.Chain):
     super(RNNDecoder, self).__init__(
       embed = L.EmbedID(target_vocab, emb_units),
       l1 = ll.LSTMDec(emb_units, n_units),
-      l2 = lm.Maxout(n_units, emb_units, target_vocab, 50),
+      l2 = lm.Maxout(n_units, emb_units, target_vocab, 2),
       )
     for param in self.params():
       param.data[...] = np.random.uniform(-0.1, 0.1, param.data.shape)
@@ -29,7 +29,6 @@ class RNNDecoder(chainer.Chain):
 
   def reset_state(self):
     self.l1.reset_state()
-    #TODO need reset_state() about linear of maxout ソモソモ stateとlinearの違い...
 
     first_emb = np.zeros((self.batchsize, self.emb_units), dtype=np.float32)
     if self.gpu >= 0:
@@ -46,6 +45,8 @@ class RNNDecoder(chainer.Chain):
   def __call__(self, prev_y_ids, middle):
     batch = prev_y_ids.shape[0]
     h = self.l1(F.dropout(self.prev_y_cswr[:batch], train=self.train))
-    y = self.l2(h[:batch], self.prev_y_cswr[:batch], middle.mid_c[:batch])
+    y = self.l2(F.dropout(h[:batch], train=self.train),
+        F.dropout(self.prev_y_cswr[:batch], train=self.train),
+        F.dropout(middle.mid_c[:batch], train=self.train))
     self.set_next_params(prev_y_ids)
     return y
