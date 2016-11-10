@@ -25,24 +25,30 @@ from chainer import variable
 from ipdb import set_trace
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--batchsize', '-b', type=int, default=20,
+parser.add_argument('--batchsize', '-b', type=int, default=64,
     help='Number of examples in each mini batch')
-parser.add_argument('--unit', '-u', type=int, default=650,
-                    help='Number of LSTM units in each layer')
+parser.add_argument('--unit', '-u', type=int, default=1000,
+    help='Number of LSTM units in each layer')
+parser.add_argument('--emb_unit', '-eu', type=int, default=100,
+    help='Number of LSTM units in each layer')
+parser.add_argument('--gpu', '-g', type=int, default=-1,
+    help='GPU ID (negative value indicates CPU)')
 parser.add_argument('--dir', '-d', default="",
+                    help='Which result data')
+parser.add_argument('--wdir', '-wd', default="",
                     help='Which result data')
 
 parser.set_defaults(test=False)
 args = parser.parse_args()
 
-with open("%s/ja.bin" %args.dir, "r") as f:
-  ja_vocab = pickle.load(f)
+with open("%s/source.vocab" %args.wdir, "r") as f:
+  source_vocab = pickle.load(f)
 
-with open("%s/en.bin" %args.dir, "r") as f:
-  en_vocab = pickle.load(f)
+with open("%s/target.vocab" %args.wdir, "r") as f:
+  target_vocab = pickle.load(f)
 
-enc = rnnenc.RNNEncoder(len(ja_vocab), args.unit)
-dec = rnndec.RNNDecoder(len(en_vocab), args.unit, args.batchsize)
+enc = rnnenc.RNNEncoder(len(source_vocab), args.emb_unit, args.unit)
+dec = rnndec.RNNDecoder(len(target_vocab), args.emb_unit, args.unit, args.batchsize, args.gpu)
 middle_c = middle.MiddleC(args.unit)
 
 enc_model = ec.EncClassifier(enc)
@@ -50,8 +56,7 @@ dec_model = ec.DecClassifier(dec)
 
 enc_model.train = False
 dec_model.train = False
-dec_model.predictor.reset_state()
-
+middle_c.train = False
 
 if args.dir:
     print('Load model from %s/dec.model' %args.dir )
@@ -62,7 +67,7 @@ if args.dir:
     serializers.load_npz("%s/middle.model" %args.dir, middle_c)
 
 mt = MeCab.Tagger("-Owakati")
-unk_id = ja_vocab["unk"]
+unk_id = source_vocab["<unk>"]
 
 while True:
   print("日本語を入力してください 終了する場合はexitを入力してください")
@@ -72,25 +77,28 @@ while True:
 
   inputs = mt.parse(line).strip().split()
   inputs.append("<eos>")
-  ids = [ja_vocab.get(word, unk_id) for word in inputs]
+  ids = [source_vocab.get(word, unk_id) for word in inputs]
 
   for _id in ids:
     enc_model(np.array([_id], dtype=np.int32))
 
-  middle_c(enc_model)
+  middle_c(enc_model.predictor.l1.h)
 
   first_y = np.array([0], dtype=np.int32)
   i = 0
-  rev_en_vocab = {v:k for k, v in en_vocab.items()}
+  rev_target_vocab = {v:k for k, v in target_vocab.items()}
 
+  dec.reset_state()
   word = []
   while True:
-    y = dec_model.predictor(first_y, middle_c, i)
+    y = dec_model.predictor(first_y, middle_c)
     i += 1
+    print(y.data)
     wid = y.data.argmax(1)[0]
-    word.append(rev_en_vocab[wid])
-    if wid == en_vocab["<eos>"]:
+    print(wid)
+    word.append(rev_target_vocab[wid])
+    if wid == target_vocab["<eos>"]:
       break
-    elif i == 30:
-      break
+    #elif i == 30:
+    #  break
   print(word)
