@@ -8,6 +8,7 @@ import sys
 sys.path.append("./origlink")
 sys.path.append("./partial_model")
 import six.moves.cPickle as pickle
+import numpy as np
 import argparse
 import time
 
@@ -73,9 +74,8 @@ def main():
     dataset.sort(key=lambda x: len(x))
     dataset.reverse()
 
-  def get_lines(dataset, itre):
-    offsets = [i * len(dataset) // args.batchsize for i in range(args.batchsize)]
-    return [dataset[((itre + offset) % len(dataset))] for offset in offsets]
+  def get_lines(dataset, _indeces):
+    return [dataset[_index] for _index in _indeces]
 
   with open(args.source_s, "r") as f:
     ss = pickle.load(f)
@@ -115,9 +115,13 @@ def main():
   opt_middle.setup(middle_c)
   opt_middle.add_hook(chainer.optimizer.GradientClipping(args.gradclip))
 
+  indeces = np.random.permutation(len(ss))
+  limit = len(ss) - args.batchsize
+
   for i in range(args.epoch):
-    _s = get_lines(ss, i)
-    _t = get_lines(ts, i)
+    _indeces = indeces[i % limit : i % limit + args.batchsize]
+    _s = get_lines(ss, _indeces)
+    _t = get_lines(ts, _indeces)
 
     desc_order_seq(_s)
     desc_order_seq(_t)
