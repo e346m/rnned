@@ -117,6 +117,7 @@ def main():
 
   indeces = np.random.permutation(len(ss))
   limit = len(ss) - args.batchsize
+  report = []
 
   for i in range(args.epoch):
     _indeces = indeces[i % limit : i % limit + args.batchsize]
@@ -146,7 +147,9 @@ def main():
         seq = cuda.to_gpu(seq, device=args.gpu)
       loss += opt_dec.target(seq[::-1], middle_c)
 
+
     print(loss.data)
+    report.append(loss)
     opt_dec.target.cleargrads()
     opt_enc.target.cleargrads()
     opt_middle.target.cleargrads()
@@ -183,6 +186,9 @@ def main():
   serializers.save_npz("./%s/dec.state" %path, opt_dec)
   serializers.save_npz("./%s/enc.state" %path, opt_enc)
   serializers.save_npz("./%s/middle.state" %path, opt_middle)
+
+  print("loss 移ろい")
+  serializers.save_npz("./%s/los.state" %path, loss)
 
 if __name__ == '__main__':
   main()
