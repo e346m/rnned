@@ -132,7 +132,6 @@ def main():
     minibatching_s = transposer.transpose_sequnce(_s)
     for seq in minibatching_s:
       if args.gpu >= 0:
-        set_trace()
         seq = cuda.to_gpu(seq, device=args.gpu)
       opt_enc.target(seq)
 
@@ -147,9 +146,8 @@ def main():
         seq = cuda.to_gpu(seq, device=args.gpu)
       loss += opt_dec.target(seq[::-1], middle_c)
 
-
     print(loss.data)
-    report.append(loss)
+    report.append(loss.data)
     opt_dec.target.cleargrads()
     opt_enc.target.cleargrads()
     opt_middle.target.cleargrads()
@@ -188,7 +186,8 @@ def main():
   serializers.save_npz("./%s/middle.state" %path, opt_middle)
 
   print("loss 移ろい")
-  serializers.save_npz("./%s/los.state" %path, loss)
+  with open("./%s/report.dump" %path, "wb") as f:
+    pickle.dump(report, f)
 
 if __name__ == '__main__':
   main()
