@@ -1,4 +1,5 @@
 import numpy as np
+import six.moves.cPickle as pickle
 import matplotlib.pyplot as plt
 import argparse
 import seaborn as sns
