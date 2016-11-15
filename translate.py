@@ -78,8 +78,8 @@ while True:
   inputs = mt.parse(line).strip().split()
   inputs.append("<eos>")
   ids = [source_vocab.get(word, unk_id) for word in inputs]
-
-  for _id in ids:
+  rev_ids = ids[::-1]
+  for _id in rev_ids:
     enc_model(np.array([_id], dtype=np.int32))
 
   middle_c(enc_model.predictor.l1.h)
