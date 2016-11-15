@@ -84,21 +84,21 @@ while True:
 
   middle_c(enc_model.predictor.l1.h)
 
-  first_y = np.array([0], dtype=np.int32)
   i = 0
+  first_y = np.array([0], dtype=np.int32)
   rev_target_vocab = {v:k for k, v in target_vocab.items()}
-
   dec.reset_state()
+  y = dec_model.predictor(first_y, middle_c)
   word = []
   while True:
-    y = dec_model.predictor(first_y, middle_c)
     i += 1
-    print(y.data)
     wid = y.data.argmax(1)[0]
-    print(wid)
+    prev_y = np.array([wid], dtype=np.int32)
+    print(prev_y)
     word.append(rev_target_vocab[wid])
     if wid == target_vocab["<eos>"]:
       break
-    #elif i == 30:
-    #  break
+    elif i == 30:
+      break
+    y = dec_model.predictor(prev_y, middle_c)
   print(word)
