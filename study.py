@@ -11,7 +11,7 @@ args = parser.parse_args()
 with open(args.dir, "r") as f:
   loss = pickle.load(f)
 
-t1 = np.arrange(0, len(loss), 1)
+t1 = np.arange(0, len(loss), 1)
 
 plt.plot(t1, loss, "k")
 plt.show()

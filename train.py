@@ -29,7 +29,7 @@ from chainer import variable
 from chainer import serializers
 from chainer import cuda
 from chainer.training import extensions
-#import chainer.computational_graph as c
+import chainer.computational_graph as c
 
 #class RNNED(chainer.Chain):
 #  def __init__(self, source_vocab, target_vocab, n_units):
@@ -120,6 +120,8 @@ def main():
   report = []
 
   for i in range(args.epoch):
+    start = time.clock()
+    print ("start epoch: ", start, "s\n")
     _indeces = indeces[i % limit : i % limit + args.batchsize]
     _s = get_lines(ss, _indeces)
     _t = get_lines(ts, _indeces)
@@ -146,48 +148,49 @@ def main():
         seq = cuda.to_gpu(seq, device=args.gpu)
       loss += opt_dec.target(seq[::-1], middle_c)
 
-    print(loss.data)
     report.append(loss.data)
     opt_dec.target.cleargrads()
     opt_enc.target.cleargrads()
     opt_middle.target.cleargrads()
 
-    start = time.clock()
-    print ("backward\n")
     loss.backward()  # Backprop
-    print ("done: ", time.clock() - start, "\n")
     opt_dec.update()  # Update the parameters
     opt_enc.update()  # Update the parameters
     opt_middle.update()
+    print ("done: ", time.clock() - start, "s\n")
 
-    #if i == 1:
-    #  with open("graph.dot", "w") as o:
-    #      variable_style = {"shape": "octagon", "fillcolor": "#E0E0E0",
-    #                        "style": "filled"}
-    #      function_style = {"shape": "record", "fillcolor": "#6495ED",
-    #                        "style": "filled"}
-    #      g = c.build_computational_graph(
-    #          (loss, ),
-    #          variable_style=variable_style,
-    #          function_style=function_style)
-    #      o.write(g.dump())
-    #  print("graph generated")
+    if i == 0:
+      with open("graph.dot", "w") as o:
+          variable_style = {"shape": "octagon", "fillcolor": "#E0E0E0",
+                            "style": "filled"}
+          function_style = {"shape": "record", "fillcolor": "#6495ED",
+                            "style": "filled"}
+          g = c.build_computational_graph(
+              (loss, ),
+              variable_style=variable_style,
+              function_style=function_style)
+          o.write(g.dump())
+      print("graph generated")
+      continue
 
-  path = "./%s"  %datetime.datetime.now().strftime("%s")
-  print("save the model")
-  os.mkdir(path, 0755)
-  serializers.save_npz("./%s/dec.model" %path, dec_model)
-  serializers.save_npz("./%s/enc.model" %path, enc_model)
-  serializers.save_npz("./%s/middle.model" %path, middle_c)
+    if i % 500  == 0:
+      print ("epoch ", i, "\n")
+      print("loss: ", loss.data, "\n")
+      path = "./%s"  %datetime.datetime.now().strftime("%s")
+      print("save the model")
+      os.mkdir(path, 0755)
+      serializers.save_npz("./%s/%s-dec.model" %(path, i), dec_model)
+      serializers.save_npz("./%s/%s-enc.model" %(path, i), enc_model)
+      serializers.save_npz("./%s/%-smiddle.model" %(path, i), middle_c)
 
-  print("save the optimizer")
-  serializers.save_npz("./%s/dec.state" %path, opt_dec)
-  serializers.save_npz("./%s/enc.state" %path, opt_enc)
-  serializers.save_npz("./%s/middle.state" %path, opt_middle)
+      print("save the optimizer")
+      serializers.save_npz("./%s/%s-dec.state" %(path, i), opt_dec)
+      serializers.save_npz("./%s/%s-enc.state" %(path, i), opt_enc)
+      serializers.save_npz("./%s/%s-middle.state" %(path, i), opt_middle)
 
-  print("loss 移ろい")
-  with open("./%s/report.dump" %path, "wb") as f:
-    pickle.dump(report, f)
+      print("loss 移ろい")
+      with open("./%s/%s-report.dump" %(path, i), "wb") as f:
+        pickle.dump(report, f)
 
 if __name__ == '__main__':
   main()

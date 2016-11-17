@@ -20,6 +20,7 @@ import ext_classifier as ec
 import MeCab
 
 import chainer
+import chainer.functions as F
 from chainer import serializers
 from chainer import variable
 from ipdb import set_trace
@@ -33,6 +34,8 @@ parser.add_argument('--emb_unit', '-eu', type=int, default=100,
     help='Number of LSTM units in each layer')
 parser.add_argument('--gpu', '-g', type=int, default=-1,
     help='GPU ID (negative value indicates CPU)')
+parser.add_argument('--length', type=int, default=20,
+    help='length of the generated text')
 parser.add_argument('--dir', '-d', default="",
                     help='Which result data')
 parser.add_argument('--wdir', '-wd', default="",
@@ -47,16 +50,19 @@ with open("%s/source.vocab" %args.wdir, "r") as f:
 with open("%s/target.vocab" %args.wdir, "r") as f:
   target_vocab = pickle.load(f)
 
-enc = rnnenc.RNNEncoder(len(source_vocab), args.emb_unit, args.unit)
-dec = rnndec.RNNDecoder(len(target_vocab), args.emb_unit, args.unit, args.batchsize, args.gpu)
-middle_c = middle.MiddleC(args.unit)
+def softmax(x):
+  e = numpy.exp(x - numpy.max(x))  # prevent overflow
+  if e.ndim == 1:
+    return e / numpy.sum(e, axis=0)
+  else:
+    return e / numpy.array([numpy.sum(e, axis=1)]).T
+
+enc = rnnenc.RNNEncoder(len(source_vocab), args.emb_unit, args.unit, train=False)
+dec = rnndec.RNNDecoder(len(target_vocab), args.emb_unit, args.unit, args.batchsize, args.gpu, train=False)
+middle_c = middle.MiddleC(args.unit, train=False)
 
 enc_model = ec.EncClassifier(enc)
 dec_model = ec.DecClassifier(dec)
-
-enc_model.train = False
-dec_model.train = False
-middle_c.train = False
 
 if args.dir:
     print('Load model from %s/dec.model' %args.dir )
@@ -78,27 +84,23 @@ while True:
   inputs = mt.parse(line).strip().split()
   inputs.append("<eos>")
   ids = [source_vocab.get(word, unk_id) for word in inputs]
-  rev_ids = ids[::-1]
-  for _id in rev_ids:
+  for _id in ids:
     enc_model(np.array([_id], dtype=np.int32))
 
   middle_c(enc_model.predictor.l1.h)
 
-  i = 0
-  first_y = np.array([0], dtype=np.int32)
-  rev_target_vocab = {v:k for k, v in target_vocab.items()}
   dec.reset_state()
-  y = dec_model.predictor(first_y, middle_c)
-  word = []
-  while True:
-    i += 1
-    wid = y.data.argmax(1)[0]
+  prev_y = np.array([0], dtype=np.int32)
+  rev_target_vocab = {v:k for k, v in target_vocab.items()}
+
+  for i in six.moves.range(args.length):
+    prob = F.softmax(dec_model.predictor(prev_y, middle_c))
+    wid = prob.data.argmax(1)[0]
+
+    if rev_target_vocab[wid] == '<eos>':
+      sys.stdout.write('.')
+    else:
+      sys.stdout.write(rev_target_vocab[wid] + ' ')
+
     prev_y = np.array([wid], dtype=np.int32)
-    print(prev_y)
-    word.append(rev_target_vocab[wid])
-    if wid == target_vocab["<eos>"]:
-      break
-    elif i == 30:
-      break
-    y = dec_model.predictor(prev_y, middle_c)
-  print(word)
+  sys.stdout.write('\n')

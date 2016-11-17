@@ -8,9 +8,8 @@ from itertools import chain
 from collections import Counter
 
 from ipdb import set_trace
-#TODO UKNの扱いは1回しか出てきてない単語かそれとも上位~単語以外の単語をuknにするか..
 UNK = "<unk>"
-V_SIZE = 15000
+V_SIZE = 10000 #論文は15000
 
 class Load(object):
   def __init__(self, dump_label):
@@ -25,7 +24,7 @@ class Load(object):
     self.r_info([line[0].strip().split() for line in fs])
 
   def r_info(self, lines):
-    vocab = {}
+    vocab = {"<eos>": 0, "<unk>": 1}
     dataset = []
     flat_lines = chain.from_iterable(lines)
     count =[k for k, v in Counter(flat_lines).most_common(V_SIZE)]
