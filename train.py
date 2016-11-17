@@ -120,8 +120,8 @@ def main():
   report = []
 
   for i in range(args.epoch):
-    start = time.clock()
-    print ("start epoch: ", start, "s\n")
+    start = time.time()
+    print ("start epoch:", i, "times\n")
     _indeces = indeces[i % limit : i % limit + args.batchsize]
     _s = get_lines(ss, _indeces)
     _t = get_lines(ts, _indeces)
@@ -157,7 +157,7 @@ def main():
     opt_dec.update()  # Update the parameters
     opt_enc.update()  # Update the parameters
     opt_middle.update()
-    print ("done: ", time.clock() - start, "s\n")
+    print ("done: ", time.time() - start, "s\n")
 
     if i == 0:
       with open("graph.dot", "w") as o:
@@ -173,7 +173,7 @@ def main():
       print("graph generated")
       continue
 
-    if i % 500  == 0:
+    if i % 500 == 0 or (i+1) == args.epoch:
       print ("epoch ", i, "\n")
       print("loss: ", loss.data, "\n")
       path = "./%s"  %datetime.datetime.now().strftime("%s")
@@ -188,7 +188,7 @@ def main():
       serializers.save_npz("./%s/%s-enc.state" %(path, i), opt_enc)
       serializers.save_npz("./%s/%s-middle.state" %(path, i), opt_middle)
 
-      print("loss 移ろい")
+      print("save the loss")
       with open("./%s/%s-report.dump" %(path, i), "wb") as f:
         pickle.dump(report, f)
 
