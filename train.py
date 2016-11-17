@@ -126,8 +126,10 @@ def main():
     _s = get_lines(ss, _indeces)
     _t = get_lines(ts, _indeces)
 
-    desc_order_seq(_s)
-    desc_order_seq(_t)
+    #desc_order_seq(_s)
+    #TODO 順序を変えたらtargetの方は対応付ける？ 対応付けたら長さ順になるとは限らないからdecoder側には入れられないよね where -1うめ
+    #TODO この中でrev_seqにしなきゃいけない かつ eosが最後にならないと行けない
+    #desc_order_seq(_t)
     enc.reset_state()
     dec.reset_state()
 
@@ -146,7 +148,7 @@ def main():
     for seq in minibatching_t:
       if args.gpu >= 0:
         seq = cuda.to_gpu(seq, device=args.gpu)
-      loss += opt_dec.target(seq[::-1], middle_c)
+      loss += opt_dec.target(seq, middle_c)
 
     report.append(loss.data)
     opt_dec.target.cleargrads()
