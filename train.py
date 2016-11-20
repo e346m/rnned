@@ -118,6 +118,8 @@ def main():
   indeces = np.random.permutation(len(ss))
   limit = len(ss) - args.batchsize
   report = []
+  path = "./%s"  %datetime.datetime.now().strftime("%s")
+  os.mkdir(path, 0755)
 
   for i in range(args.epoch):
     start = time.time()
@@ -161,37 +163,36 @@ def main():
     opt_middle.update()
     print ("done: ", time.time() - start, "s\n")
 
-    if i == 0:
-      with open("graph.dot", "w") as o:
-          variable_style = {"shape": "octagon", "fillcolor": "#E0E0E0",
-                            "style": "filled"}
-          function_style = {"shape": "record", "fillcolor": "#6495ED",
-                            "style": "filled"}
-          g = c.build_computational_graph(
-              (loss, ),
-              variable_style=variable_style,
-              function_style=function_style)
-          o.write(g.dump())
-      print("graph generated")
-      continue
+    #if i == 0:
+    #  with open("graph.dot", "w") as o:
+    #      variable_style = {"shape": "octagon", "fillcolor": "#E0E0E0",
+    #                        "style": "filled"}
+    #      function_style = {"shape": "record", "fillcolor": "#6495ED",
+    #                        "style": "filled"}
+    #      g = c.build_computational_graph(
+    #          (loss, ),
+    #          variable_style=variable_style,
+    #          function_style=function_style)
+    #      o.write(g.dump())
+    #  print("graph generated")
+    #  continue
 
-    if i % 500 == 0 or (i+1) == args.epoch:
+    if i % 500 == 0:
       print ("epoch ", i, "\n")
       print("loss: ", loss.data, "\n")
-      path = "./%s"  %datetime.datetime.now().strftime("%s")
+      os.mkdir("./%s/%s" %(path, i), 0755)
       print("save the model")
-      os.mkdir(path, 0755)
-      serializers.save_npz("./%s/%s-dec.model" %(path, i), dec_model)
-      serializers.save_npz("./%s/%s-enc.model" %(path, i), enc_model)
-      serializers.save_npz("./%s/%-smiddle.model" %(path, i), middle_c)
+      serializers.save_npz("./%s/%s/dec.model" %(path, i), dec_model)
+      serializers.save_npz("./%s/%s/enc.model" %(path, i), enc_model)
+      serializers.save_npz("./%s/%s/middle.model" %(path, i), middle_c)
 
       print("save the optimizer")
-      serializers.save_npz("./%s/%s-dec.state" %(path, i), opt_dec)
-      serializers.save_npz("./%s/%s-enc.state" %(path, i), opt_enc)
-      serializers.save_npz("./%s/%s-middle.state" %(path, i), opt_middle)
+      serializers.save_npz("./%s/%s/dec.state" %(path, i), opt_dec)
+      serializers.save_npz("./%s/%s/enc.state" %(path, i), opt_enc)
+      serializers.save_npz("./%s/%s/middle.state" %(path, i), opt_middle)
 
       print("save the loss")
-      with open("./%s/%s-report.dump" %(path, i), "wb") as f:
+      with open("./%s/%s/report.dump" %(path, i), "wb") as f:
         pickle.dump(report, f)
 
 if __name__ == '__main__':
