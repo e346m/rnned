@@ -80,7 +80,9 @@ def main():
     t = []
     s = []
     for data in dataset:
-      t.append(data.pop()[::-1])
+      tmp_t = data.pop()
+      #TODO for gpu use xp system in initialze
+      t.append(np.concatenate((tmp_t[:-1][::-1], tmp_t[-1:])))
       s.append(data[0])
     return s, t
 
