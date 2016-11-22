@@ -9,6 +9,8 @@ from chainer import initializers
 from chainer import link
 from chainer.links.connection import linear
 from chainer import variable
+import chainer.functions as F
+import chainer.links as L
 from ipdb import set_trace
 
 import func_lstm
@@ -134,3 +136,25 @@ class LSTMDec(chainer.Chain):
     self.h = restore_status(y, self.h, h_rest)
     self.cfe = restore_status(y, self.cfe, cfe_rest)
     return y
+
+class LSTMEnc(L.LSTM):
+  def __call__(self, x, cond):
+    lstm_in = self.upward(x)
+
+    if self.h is not None:
+        lstm_in += self.lateral(self.h)
+    if self.c is None:
+        xp = self.xp
+        self.c = variable.Variable(
+            xp.zeros((len(x.data), self.state_size), dtype=x.data.dtype),
+            volatile='auto')
+    _c, _h = lstm.lstm(self.c, lstm_in)
+
+    if self.h is not None:
+      self.c = F.where(cond, _c, self.c)
+      self.h = F.where(cond, _h, self.h)
+    else:
+      self.c = _c
+      self.h = _h
+
+    return self.h

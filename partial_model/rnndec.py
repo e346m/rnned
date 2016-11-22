@@ -16,7 +16,7 @@ from ipdb import set_trace
 class RNNDecoder(chainer.Chain):
   def __init__(self, target_vocab, emb_units, n_units, batchsize, gpu, train=True):
     super(RNNDecoder, self).__init__(
-      embed = L.EmbedID(target_vocab, emb_units),
+      embed = L.EmbedID(target_vocab, emb_units, ignore_label=-1),
       l1 = ll.LSTMDec(emb_units, n_units),
       l2 = lm.Maxout(n_units, emb_units, target_vocab, 2),
       )
