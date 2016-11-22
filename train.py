@@ -41,7 +41,7 @@ import chainer.computational_graph as c
 
 def main():
   parser = argparse.ArgumentParser()
-  parser.add_argument('--batchsize', '-b', type=int, default=2,
+  parser.add_argument('--batchsize', '-b', type=int, default=64,
     help='Number of examples in each mini batch')
   parser.add_argument('--epoch', '-e', type=int, default=39,
     help='Number of sweeps over the dataset to train')
