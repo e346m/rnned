@@ -16,7 +16,7 @@ class Load(object):
   def __init__(self, dump_label):
     self.dump_label = dump_label
 
-  def normalize_load_data(self, filename, output):
+  def normalize_load_data(self, output, filename):
     fs = np.array(pd.read_table(filename))
     self.r_info([line[0].lower().strip().split() for line in fs], output)
 
