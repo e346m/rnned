@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import os
 import argparse
 import numpy as np
 import pandas as pd
@@ -15,15 +16,15 @@ class Load(object):
   def __init__(self, dump_label):
     self.dump_label = dump_label
 
-  def normalize_load_data(self, filename):
+  def normalize_load_data(self, filename, output):
     fs = np.array(pd.read_table(filename))
-    self.r_info([line[0].lower().strip().split() for line in fs])
+    self.r_info([line[0].lower().strip().split() for line in fs], output)
 
   def load_data(self, filename):
     fs = np.array(pd.read_table(filename))
     self.r_info([line[0].strip().split() for line in fs])
 
-  def r_info(self, lines):
+  def r_info(self, lines, output):
     vocab = {"<eos>": 0, "<unk>": 1}
     dataset = []
     flat_lines = chain.from_iterable(lines)
@@ -38,9 +39,9 @@ class Load(object):
         tmp_line.append(vocab[word])
       dataset.append(np.array(tmp_line, dtype=np.int32))
 
-    with open("./input/%s.sentence" %self.dump_label, "wb") as f:
+    with open("./%s/%s.sentence" %(output, self.dump_label), "wb") as f:
       pickle.dump(dataset, f)
-    with open("./input/%s.vocab" %self.dump_label, "wb") as f:
+    with open("./%s/%s.vocab" %(output, self.dump_label), "wb") as f:
       pickle.dump(vocab, f)
 
 class SourceLoader(Load):
@@ -55,10 +56,13 @@ def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('--source', '-s', help='Source file path')
   parser.add_argument('--target', '-t', help='Target file path')
+  parser.add_argument('--output', '-o', default="./input/",
+    help='Target file path')
   args = parser.parse_args()
 
-  SourceLoader().normalize_load_data(args.source)
-  TargetLoader().normalize_load_data(args.target)
+  os.mkdir(args.ouput, 0755)
+  SourceLoader().normalize_load_data(args.output, args.source)
+  TargetLoader().normalize_load_data(args.output, args.target)
 
 if __name__ == '__main__':
   main()

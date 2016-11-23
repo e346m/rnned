@@ -60,14 +60,8 @@ def main():
     help='Number of LSTM units in each layer')
   parser.add_argument('--emb_unit', '-eu', type=int, default=100,
     help='Number of LSTM units in each layer')
-  parser.add_argument('--source_s', '-ss', default="./input/source.sentence",
-    help='Source file path')
-  parser.add_argument('--target_s', '-ts', default="./input/target.sentence",
-    help='Target file path')
-  parser.add_argument('--source_v', '-sv', default="./input/source.vocab",
-    help='Source file path')
-  parser.add_argument('--target_v', '-tv', default="./input/target.vocab",
-    help='Target file path')
+  parser.add_argument('--dir', '-d', default="./input/",
+    help='Using dirctory')
   parser.add_argument('--output_label', '-ol', default="",
     help='output label')
   args = parser.parse_args()
@@ -102,13 +96,13 @@ def main():
   def get_lines(dataset, _indeces):
     return [dataset[_index] for _index in _indeces]
 
-  with open(args.source_s, "r") as f:
+  with open(args.dir + "source.sentence", "r") as f:
     ss = pickle.load(f)
-  with open(args.target_s, "r") as f:
+  with open(args.dir + "target.sentence", "r") as f:
     ts = pickle.load(f)
-  with open(args.source_v, "r") as f:
+  with open(args.dir + "source.vocab", "r") as f:
     source_vocab = pickle.load(f)
-  with open(args.target_v, "r") as f:
+  with open(args.dir + "target.vocab", "r") as f:
     target_vocab = pickle.load(f)
 
   #rnned = RNNED(source_vocab, target_vocab, args.unit, args.batchsize)
