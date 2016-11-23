@@ -57,7 +57,7 @@ def softmax(x):
   else:
     return e / numpy.array([numpy.sum(e, axis=1)]).T
 
-enc = rnnenc.RNNEncoder(len(source_vocab), args.emb_unit, args.unit, train=False)
+enc = rnnenc.RNNEncoder(len(source_vocab), args.emb_unit, args.unit, args.gpu, train=False)
 dec = rnndec.RNNDecoder(len(target_vocab), args.emb_unit, args.unit, args.batchsize, args.gpu, train=False)
 middle_c = middle.MiddleC(args.unit, train=False)
 

@@ -30,10 +30,11 @@ class RNNDecoder(chainer.Chain):
   def reset_state(self):
     self.l1.reset_state()
 
-    first_emb = np.zeros((self.batchsize, self.emb_units), dtype=np.float32)
+    first_ids = np.empty(self.batchsize, np.int32)
+    first_ids.fill(-1)
     if self.gpu >= 0:
-        first_emb = cuda.to_gpu(first_emb, device=self.gpu)
-    self.prev_y_cswr = first_emb
+        first_ids = cuda.to_gpu(first_ids, device=self.gpu)
+    self.set_next_params(first_ids)
 
   def set_l1(self, middle):
     self.l1.set_state(middle.dec_h0, middle.mid_c)
