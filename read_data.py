@@ -60,7 +60,7 @@ def main():
     help='Target file path')
   args = parser.parse_args()
 
-  if not os.exists(args.output):
+  if not os.path.exists(args.output):
     os.mkdir(args.output, 0755)
   SourceLoader().normalize_load_data(args.output, args.source)
   TargetLoader().normalize_load_data(args.output, args.target)
