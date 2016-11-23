@@ -90,7 +90,7 @@ while True:
   middle_c(enc_model.predictor.l1.h)
 
   dec.reset_state()
-  prev_y = np.array([0], dtype=np.int32)
+  prev_y = np.array([-1], dtype=np.int32)
   rev_target_vocab = {v:k for k, v in target_vocab.items()}
 
   for i in six.moves.range(args.length):

@@ -159,9 +159,10 @@ def main():
     dec.reset_state()
 
     minibatching_s = transposer.transpose_sequnce(_s)
+    if args.gpu >= 0:
+      minibatching_s = [cuda.to_gpu(seq, device=args.gpu) for seq in minibatching_s]
+
     for seq in minibatching_s:
-      if args.gpu >= 0:
-        seq = cuda.to_gpu(seq, device=args.gpu)
       opt_enc.target(seq)
 
     middle_c(opt_enc.target.predictor.l1.h)
@@ -169,11 +170,17 @@ def main():
 
     loss = 0
     minibatching_t = transposer.transpose_sequnce(_t)
+    first_ids = np.zeros(args.batchsize, dtype=np.int32)
+    first_ids.fill(-1)
+    minibatching_t.insert(0, first_ids)
 
-    for seq in minibatching_t:
-      if args.gpu >= 0:
-        seq = cuda.to_gpu(seq, device=args.gpu)
-      loss += opt_dec.target(seq, middle_c)
+    if args.gpu >= 0:
+      minibatching_t = [cuda.to_gpu(seq, device=args.gpu) for seq in minibatching_t]
+
+    for num in range(len(minibatching_t) - 1):
+      seq = minibatching_t[num]
+      next_seq = minibatching_t[num + 1]
+      loss += opt_dec.target(seq, middle_c, next_seq)
 
     report.append(loss.data)
     opt_dec.target.cleargrads()

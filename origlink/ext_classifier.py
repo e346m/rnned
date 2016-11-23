@@ -24,14 +24,16 @@ class DecClassifier(Classifier):
     def __call__(self, *args):
 
         assert len(args) >= 2
-        t = args[0]
+        prev_y = args[0]
         middle = args[1]
+        t = args[2]
 
         self.y = None
         self.loss = None
         self.accuracy = None
-        self.y = self.predictor(t, middle)
-        self.loss = self.lossfun(self.y, t) # compare y' and y
+        batch = t.shape[0]
+        self.y = self.predictor(prev_y, middle, batch)
+        self.loss = self.lossfun(self.y, t)
         reporter.report({'loss': self.loss}, t)
         if self.compute_accuracy:
             self.accuracy = self.accfun(self.y, t)

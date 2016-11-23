@@ -30,24 +30,14 @@ class RNNDecoder(chainer.Chain):
   def reset_state(self):
     self.l1.reset_state()
 
-    first_ids = np.empty(self.batchsize, np.int32)
-    first_ids.fill(-1)
-    if self.gpu >= 0:
-        first_ids = cuda.to_gpu(first_ids, device=self.gpu)
-    self.set_next_params(first_ids)
-
   def set_l1(self, middle):
     self.l1.set_state(middle.dec_h0, middle.mid_c)
 
-  def set_next_params(self, prev_y_id):
-    self.prev_y_cswr = self.embed(prev_y_id)
-
   #management hidden state h and c in l1 not in this object
-  def __call__(self, prev_y_ids, middle):
-    batch = prev_y_ids.shape[0]
-    h = self.l1(F.dropout(self.prev_y_cswr[:batch], train=self.train))
+  def __call__(self, prev_y_ids, middle, batch):
+    prev_y_cswr = self.embed(prev_y_ids)
+    h = self.l1(F.dropout(prev_y_cswr, train=self.train))
     y = self.l2(F.dropout(h[:batch], train=self.train),
-        F.dropout(self.prev_y_cswr[:batch], train=self.train),
+        F.dropout(prev_y_cswr[:batch], train=self.train),
         F.dropout(middle.mid_c[:batch], train=self.train))
-    self.set_next_params(prev_y_ids)
     return y
