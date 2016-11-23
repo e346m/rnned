@@ -190,7 +190,7 @@ def main():
     print ("done: ", time.time() - start, "s\n")
 
     if i == 0:
-      path = "./%s-%s" %(datetime.datetime.now().strftime("%s"), args.output_label)
+      path = "./%s_%s" %(args.output_label, datetime.datetime.now().strftime("%s"))
       os.mkdir(path, 0755)
       continue
     #  with open("graph.dot", "w") as o:
