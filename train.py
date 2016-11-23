@@ -68,6 +68,8 @@ def main():
     help='Source file path')
   parser.add_argument('--target_v', '-tv', default="./input/target.vocab",
     help='Target file path')
+  parser.add_argument('--output_label', '-ol', default="",
+    help='output label')
   args = parser.parse_args()
 
   def concatinate_sort(_s, _t):
@@ -194,7 +196,7 @@ def main():
     print ("done: ", time.time() - start, "s\n")
 
     if i == 0:
-      path = "./%s"  %datetime.datetime.now().strftime("%s")
+      path = "./%s-%s" %(datetime.datetime.now().strftime("%s"), args.output_label)
       os.mkdir(path, 0755)
       continue
     #  with open("graph.dot", "w") as o:
