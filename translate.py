@@ -57,6 +57,19 @@ def softmax(x):
   else:
     return e / numpy.array([numpy.sum(e, axis=1)]).T
 
+def get_children(model):
+  if hasattr(model, "_children"):
+    children = model._children
+    for child in children:
+      child_model = model.__dict__[child]
+      get_children(child_model)
+  else:
+    if model.W is not None:
+      print(model.name)
+      print(model.W.data)
+    else:
+      pass
+
 enc = rnnenc.RNNEncoder(len(source_vocab), args.emb_unit, args.unit, args.gpu, train=False)
 dec = rnndec.RNNDecoder(len(target_vocab), args.emb_unit, args.unit, args.batchsize, args.gpu, train=False)
 middle_c = middle.MiddleC(args.unit, train=False)
@@ -94,7 +107,7 @@ while True:
   rev_target_vocab = {v:k for k, v in target_vocab.items()}
 
   for i in six.moves.range(args.length):
-    prob = F.softmax(dec_model.predictor(prev_y, middle_c))
+    prob = F.softmax(dec_model.predictor(prev_y, middle_c, 1))
     wid = prob.data.argmax(1)[0]
 
     if rev_target_vocab[wid] == '<eos>':
