@@ -153,6 +153,18 @@ def main():
   #  _indeces = indeces[i[0] % limit : i[0] % limit + args.batchsize]
   #  _s = get_lines(ss, _indeces)
   #  _t = get_lines(ts, _indeces)
+  #  dataset = concatinate_sort(_s, _t)
+  #  _s, _t = separate_dataset(dataset)
+
+  #  enc.reset_state()
+  #  dec.reset_state()
+
+  #  minibatching_s = transposer.transpose_sequnce(_s)
+  #  if args.gpu >= 0:
+  #    minibatching_s = [cuda.to_gpu(seq, device=args.gpu) for seq in minibatching_s]
+
+  #  for seq in minibatching_s:
+  #    opt_enc.target(seq)
 
   for i in range(args.epoch):
     start = time.time()

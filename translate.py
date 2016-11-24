@@ -95,6 +95,8 @@ while True:
     break
 
   enc.reset_state
+  dec.reset_state()
+
   inputs = mt.parse(line).strip().split()
   inputs.append("<eos>")
   ids = [source_vocab.get(word, unk_id) for word in inputs]
@@ -102,8 +104,8 @@ while True:
     enc_model(np.array([_id], dtype=np.int32))
 
   middle_c(enc_model.predictor.l1.h)
+  dec_model.predictor.set_l1(middle_c)
 
-  dec.reset_state()
   prev_y = np.array([-1], dtype=np.int32)
   rev_target_vocab = {v:k for k, v in target_vocab.items()}
 
