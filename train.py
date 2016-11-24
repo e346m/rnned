@@ -64,6 +64,8 @@ def main():
     help='Using dirctory')
   parser.add_argument('--output_label', '-ol', default="",
     help='output label')
+  parser.add_argument('--eval', '-eval',
+    help='Eval')
   args = parser.parse_args()
 
   def concatinate_sort(_s, _t):
@@ -109,6 +111,14 @@ def main():
   enc = rnnenc.RNNEncoder(len(source_vocab), args.emb_unit, args.unit, args.gpu)
   dec = rnndec.RNNDecoder(len(target_vocab), args.emb_unit, args.unit, args.batchsize, args.gpu)
   middle_c = middle.MiddleC(args.unit)
+
+  if args.eval:
+    print('Load model from %s/dec.model' %args.eval )
+    serializers.load_npz("%s/dec.model" %args.eval, dec_model)
+    print('Load model from %s/enc.model' %args.eval )
+    serializers.load_npz("%s/enc.model" %args.eval, enc_model)
+    print('Load model from %s/middle.model' %args.eval )
+    serializers.load_npz("%s/middle.model" %args.eval, middle_c)
 
   enc_model = ec.EncClassifier(enc)
   dec_model = ec.DecClassifier(dec)
