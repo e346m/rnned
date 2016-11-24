@@ -112,6 +112,10 @@ def main():
   dec = rnndec.RNNDecoder(len(target_vocab), args.emb_unit, args.unit, args.batchsize, args.gpu)
   middle_c = middle.MiddleC(args.unit)
 
+  enc_model = ec.EncClassifier(enc)
+  dec_model = ec.DecClassifier(dec)
+  transposer = transpose.Transpose()
+
   if args.eval:
     print('Load model from %s/dec.model' %args.eval )
     serializers.load_npz("%s/dec.model" %args.eval, dec_model)
@@ -119,10 +123,6 @@ def main():
     serializers.load_npz("%s/enc.model" %args.eval, enc_model)
     print('Load model from %s/middle.model' %args.eval )
     serializers.load_npz("%s/middle.model" %args.eval, middle_c)
-
-  enc_model = ec.EncClassifier(enc)
-  dec_model = ec.DecClassifier(dec)
-  transposer = transpose.Transpose()
 
   dec_model.compute_accuracy = False
   enc_model.compute_accuracy = False
@@ -147,6 +147,12 @@ def main():
   indeces = np.random.permutation(len(ss))
   limit = len(ss) - args.batchsize
   report = []
+
+  #if args.eval:
+  #  i = np.random.permutation(1)
+  #  _indeces = indeces[i[0] % limit : i[0] % limit + args.batchsize]
+  #  _s = get_lines(ss, _indeces)
+  #  _t = get_lines(ts, _indeces)
 
   for i in range(args.epoch):
     start = time.time()

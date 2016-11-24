@@ -94,6 +94,7 @@ while True:
   if line == "exit":
     break
 
+  enc.reset_state
   inputs = mt.parse(line).strip().split()
   inputs.append("<eos>")
   ids = [source_vocab.get(word, unk_id) for word in inputs]
