@@ -6,7 +6,7 @@ from __future__ import print_function
 import os
 import sys
 sys.path.append("./mylink")
-sys.path.append("./partial_model")
+sys.path.append("./_models")
 import six.moves.cPickle as pickle
 import numpy as np
 import argparse
@@ -116,7 +116,6 @@ def main():
     _indeces = indeces[i % limit : i % limit + args.batchsize]
     dwran._s = get_lines(ss, _indeces)
     dwran._t = get_lines(ts, _indeces)
-
     dwran.reverse_source_seq_without_last_word()
     dwran.sort_alignment_key_target()
     dwran.filling_ingnore_label()
@@ -124,6 +123,7 @@ def main():
     enc.reset_state()
     dec.reset_state()
 
+    #transposer will be into dwran
     minibatching_s = transposer.transpose_sequnce(dwran._s)
     if args.gpu >= 0:
       minibatching_s = [cuda.to_gpu(seq, device=args.gpu) for seq in minibatching_s]
@@ -135,6 +135,7 @@ def main():
     opt_dec.target.predictor.set_l1(middle_c)
 
     loss = 0
+    #transposer will be into dwran
     minibatching_t = transposer.transpose_sequnce(dwran._t)
     first_ids = np.zeros(args.batchsize, dtype=np.int32)
     first_ids.fill(-1)
