@@ -56,7 +56,7 @@ def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('--source', '-s', help='Source file path')
   parser.add_argument('--target', '-t', help='Target file path')
-  parser.add_argument('--output', '-o', default="./input/",
+  parser.add_argument('--output', '-o', required=True,
     help='Target file path')
   args = parser.parse_args()
 

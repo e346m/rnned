@@ -1,7 +1,7 @@
 import numpy as np
 
 import sys
-sys.path.append("./origlink")
+sys.path.append("./mylink")
 import lstm as ll
 
 import chainer

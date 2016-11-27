@@ -5,7 +5,7 @@ from __future__ import print_function
 
 import os
 import sys
-sys.path.append("./origlink")
+sys.path.append("./mylink")
 sys.path.append("./partial_model")
 import six.moves.cPickle as pickle
 import numpy as np
@@ -15,6 +15,7 @@ import time
 import read_data as rd
 import ext_classifier as ec
 import transpose
+import data_wrangler
 import rnndec
 import rnnenc
 import middle
@@ -29,15 +30,6 @@ from chainer import variable
 from chainer import serializers
 from chainer import cuda
 from chainer.training import extensions
-import chainer.computational_graph as c
-
-#class RNNED(chainer.Chain):
-#  def __init__(self, source_vocab, target_vocab, n_units):
-#    super(RNNED, self).__init__(
-#    rnnenc = rnnenc.RNNEncoder(source_vocab, n_units),
-#    rnndec = rnndec.RNNDecoder(target_vocab, n_units),
-#    middle = middle.MiddleC(n_units)
-#    )
 
 def main():
   parser = argparse.ArgumentParser()
@@ -68,35 +60,13 @@ def main():
     help='Eval')
   args = parser.parse_args()
 
-  def concatinate_sort(_s, _t):
-    dataset = [[__s, __t] for __s, __t in zip(_s, _t)]
-    dataset.sort(key=lambda x: len(x[1]))
-    dataset.reverse()
-    return dataset
-
-  def separate_dataset(dataset):
-    t = []
-    s = []
-    for data in dataset:
-      tmp_t = data.pop()
-      #TODO for gpu use xp system in initialze
-      t.append(np.concatenate((tmp_t[:-1][::-1], tmp_t[-1:])))
-      s.append(data[0])
-    return s, t
-
-  def formating(s, ls):
-    ret = []
-    for _s in s:
-      diff = ls - len(_s)
-      if diff is not 0:
-        balance = np.empty(diff, np.int32)
-        balance.fill(-1)
-        _s = np.hstack((_s, balance))
-      ret.append(_s)
-    return ret
-
   def get_lines(dataset, _indeces):
     return [dataset[_index] for _index in _indeces]
+
+  def set_clipping(model, gradclip):
+    opt_model = chainer.optimizers.AdaDelta()
+    opt_model.setup(model)
+    opt_model.add_hook(chainer.optimizer.GradientClipping(gradclip))
 
   with open(args.dir + "source.sentence", "r") as f:
     ss = pickle.load(f)
@@ -107,7 +77,6 @@ def main():
   with open(args.dir + "target.vocab", "r") as f:
     target_vocab = pickle.load(f)
 
-  #rnned = RNNED(source_vocab, target_vocab, args.unit, args.batchsize)
   enc = rnnenc.RNNEncoder(len(source_vocab), args.emb_unit, args.unit, args.gpu)
   dec = rnndec.RNNDecoder(len(target_vocab), args.emb_unit, args.unit, args.batchsize, args.gpu)
   middle_c = middle.MiddleC(args.unit)
@@ -115,14 +84,15 @@ def main():
   enc_model = ec.EncClassifier(enc)
   dec_model = ec.DecClassifier(dec)
   transposer = transpose.Transpose()
+  dwran = data_wrangler.DataWrangler()
 
-  if args.eval:
-    print('Load model from %s/dec.model' %args.eval )
-    serializers.load_npz("%s/dec.model" %args.eval, dec_model)
-    print('Load model from %s/enc.model' %args.eval )
-    serializers.load_npz("%s/enc.model" %args.eval, enc_model)
-    print('Load model from %s/middle.model' %args.eval )
-    serializers.load_npz("%s/middle.model" %args.eval, middle_c)
+  #if args.eval:
+  #  print('Load model from %s/dec.model' %args.eval )
+  #  serializers.load_npz("%s/dec.model" %args.eval, dec_model)
+  #  print('Load model from %s/enc.model' %args.eval )
+  #  serializers.load_npz("%s/enc.model" %args.eval, enc_model)
+  #  print('Load model from %s/middle.model' %args.eval )
+  #  serializers.load_npz("%s/middle.model" %args.eval, middle_c)
 
   dec_model.compute_accuracy = False
   enc_model.compute_accuracy = False
@@ -132,57 +102,29 @@ def main():
     enc_model.to_gpu()
     middle_c.to_gpu()
 
-  opt_enc = chainer.optimizers.AdaDelta()
-  opt_enc.setup(enc_model)
-  opt_enc.add_hook(chainer.optimizer.GradientClipping(args.gradclip))
-
-  opt_dec = chainer.optimizers.AdaDelta()
-  opt_dec.setup(dec_model)
-  opt_dec.add_hook(chainer.optimizer.GradientClipping(args.gradclip))
-
-  opt_middle = chainer.optimizers.AdaDelta()
-  opt_middle.setup(middle_c)
-  opt_middle.add_hook(chainer.optimizer.GradientClipping(args.gradclip))
+  opt_enc = set_clipping(enc_model, args.gradclip)
+  opt_dec = set_clipping(dec_model, args.gradclip)
+  opt_middle = set_clipping(middle_c, args.gradclip)
 
   indeces = np.random.permutation(len(ss))
   limit = len(ss) - args.batchsize
   report = []
 
-  #if args.eval:
-  #  i = np.random.permutation(1)
-  #  _indeces = indeces[i[0] % limit : i[0] % limit + args.batchsize]
-  #  _s = get_lines(ss, _indeces)
-  #  _t = get_lines(ts, _indeces)
-  #  dataset = concatinate_sort(_s, _t)
-  #  _s, _t = separate_dataset(dataset)
-
-  #  enc.reset_state()
-  #  dec.reset_state()
-
-  #  minibatching_s = transposer.transpose_sequnce(_s)
-  #  if args.gpu >= 0:
-  #    minibatching_s = [cuda.to_gpu(seq, device=args.gpu) for seq in minibatching_s]
-
-  #  for seq in minibatching_s:
-  #    opt_enc.target(seq)
-
   for i in range(args.epoch):
     start = time.time()
     print ("start epoch:", i, "times\n")
     _indeces = indeces[i % limit : i % limit + args.batchsize]
-    _s = get_lines(ss, _indeces)
-    _t = get_lines(ts, _indeces)
+    dwran._s = get_lines(ss, _indeces)
+    dwran._t = get_lines(ts, _indeces)
 
-    dataset = concatinate_sort(_s, _t)
-    _s, _t = separate_dataset(dataset)
-
-    largest_size = len(max(_s, key=lambda x: len(x)))
-    _s = formating(_s, largest_size)
+    dwran.reverse_source_seq_without_last_word()
+    dwran.sort_alignment_key_target()
+    dwran.filling_ingnore_label()
 
     enc.reset_state()
     dec.reset_state()
 
-    minibatching_s = transposer.transpose_sequnce(_s)
+    minibatching_s = transposer.transpose_sequnce(dwran._s)
     if args.gpu >= 0:
       minibatching_s = [cuda.to_gpu(seq, device=args.gpu) for seq in minibatching_s]
 
@@ -193,7 +135,7 @@ def main():
     opt_dec.target.predictor.set_l1(middle_c)
 
     loss = 0
-    minibatching_t = transposer.transpose_sequnce(_t)
+    minibatching_t = transposer.transpose_sequnce(dwran._t)
     first_ids = np.zeros(args.batchsize, dtype=np.int32)
     first_ids.fill(-1)
     minibatching_t.insert(0, first_ids)
@@ -221,17 +163,6 @@ def main():
       path = "./%s_%s" %(args.output_label, datetime.datetime.now().strftime("%s"))
       os.mkdir(path, 0755)
       continue
-    #  with open("graph.dot", "w") as o:
-    #      variable_style = {"shape": "octagon", "fillcolor": "#E0E0E0",
-    #                        "style": "filled"}
-    #      function_style = {"shape": "record", "fillcolor": "#6495ED",
-    #                        "style": "filled"}
-    #      g = c.build_computational_graph(
-    #          (loss, ),
-    #          variable_style=variable_style,
-    #          function_style=function_style)
-    #      o.write(g.dump())
-    #  print("graph generated")
 
     if i % 500 == 0:
       print ("epoch ", i, "\n")

@@ -4,7 +4,7 @@ from __future__ import division
 from __future__ import print_function
 
 import sys
-sys.path.append("./origlink")
+sys.path.append("./mylink")
 sys.path.append("./partial_model")
 
 import argparse
