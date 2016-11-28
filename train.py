@@ -67,6 +67,7 @@ def main():
     opt_model = chainer.optimizers.AdaDelta()
     opt_model.setup(model)
     opt_model.add_hook(chainer.optimizer.GradientClipping(gradclip))
+    return opt_model
 
   with open(args.dir + "source.sentence", "r") as f:
     ss = pickle.load(f)
@@ -85,14 +86,6 @@ def main():
   dec_model = ec.DecClassifier(dec)
   transposer = transpose.Transpose()
   dwran = data_wrangler.DataWrangler()
-
-  #if args.eval:
-  #  print('Load model from %s/dec.model' %args.eval )
-  #  serializers.load_npz("%s/dec.model" %args.eval, dec_model)
-  #  print('Load model from %s/enc.model' %args.eval )
-  #  serializers.load_npz("%s/enc.model" %args.eval, enc_model)
-  #  print('Load model from %s/middle.model' %args.eval )
-  #  serializers.load_npz("%s/middle.model" %args.eval, middle_c)
 
   dec_model.compute_accuracy = False
   enc_model.compute_accuracy = False
