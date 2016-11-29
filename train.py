@@ -56,7 +56,7 @@ def main():
     help='Using dirctory')
   parser.add_argument('--output_label', '-ol', default="",
     help='output label')
-  parser.add_argument('--continue', '-cnt',
+  parser.add_argument('--cnt', '-cnt',
     help='Eval')
   args = parser.parse_args()
 
