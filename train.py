@@ -56,7 +56,7 @@ def main():
     help='Using dirctory')
   parser.add_argument('--output_label', '-ol', default="",
     help='output label')
-  parser.add_argument('--eval', '-eval',
+  parser.add_argument('--continue', '-cnt',
     help='Eval')
   args = parser.parse_args()
 
@@ -81,9 +81,17 @@ def main():
   enc = rnnenc.RNNEncoder(len(source_vocab), args.emb_unit, args.unit, args.gpu)
   dec = rnndec.RNNDecoder(len(target_vocab), args.emb_unit, args.unit, args.batchsize, args.gpu)
   middle_c = middle.MiddleC(args.unit)
-
   enc_model = ec.EncClassifier(enc)
   dec_model = ec.DecClassifier(dec)
+
+  if args.cnt:
+    print('Load model from %s/dec.model' %args.dir )
+    serializers.load_npz("%s/dec.model" %args.dir, dec_model)
+    print('Load model from %s/enc.model' %args.dir )
+    serializers.load_npz("%s/enc.model" %args.dir, enc_model)
+    print('Load model from %s/middle.model' %args.dir )
+    serializers.load_npz("%s/middle.model" %args.dir, middle_c)
+
   transposer = transpose.Transpose()
   dwran = data_wrangler.DataWrangler()
 

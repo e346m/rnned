@@ -98,6 +98,7 @@ while True:
   dec.reset_state()
 
   inputs = mt.parse(line).strip().split()
+  inputs = inputs[::-1]
   inputs.append("<eos>")
   ids = [source_vocab.get(word, unk_id) for word in inputs]
   for _id in ids:
