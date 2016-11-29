@@ -52,12 +52,12 @@ def main():
     help='Number of LSTM units in each layer')
   parser.add_argument('--emb_unit', '-eu', type=int, default=100,
     help='Number of LSTM units in each layer')
-  parser.add_argument('--dir', '-d', default="./input/",
+  parser.add_argument('--input', '-i', default="./input/",
     help='Using dirctory')
   parser.add_argument('--output_label', '-ol', default="",
     help='output label')
-  parser.add_argument('--cnt', '-cnt',
-    help='Eval')
+  parser.add_argument('--dir', '-d',
+    help='continue study')
   args = parser.parse_args()
 
   def get_lines(dataset, _indeces):
@@ -69,13 +69,13 @@ def main():
     opt_model.add_hook(chainer.optimizer.GradientClipping(gradclip))
     return opt_model
 
-  with open(args.dir + "source.sentence", "r") as f:
+  with open(args.input + "source.sentence", "r") as f:
     ss = pickle.load(f)
-  with open(args.dir + "target.sentence", "r") as f:
+  with open(args.input + "target.sentence", "r") as f:
     ts = pickle.load(f)
-  with open(args.dir + "source.vocab", "r") as f:
+  with open(args.input + "source.vocab", "r") as f:
     source_vocab = pickle.load(f)
-  with open(args.dir + "target.vocab", "r") as f:
+  with open(args.input + "target.vocab", "r") as f:
     target_vocab = pickle.load(f)
 
   enc = rnnenc.RNNEncoder(len(source_vocab), args.emb_unit, args.unit, args.gpu)
@@ -84,7 +84,7 @@ def main():
   enc_model = ec.EncClassifier(enc)
   dec_model = ec.DecClassifier(dec)
 
-  if args.cnt:
+  if args.dir:
     print('Load model from %s/dec.model' %args.dir )
     serializers.load_npz("%s/dec.model" %args.dir, dec_model)
     print('Load model from %s/enc.model' %args.dir )
