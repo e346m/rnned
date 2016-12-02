@@ -94,14 +94,16 @@ while True:
   if line == "exit":
     break
 
-  enc.reset_state
+  enc.reset_state()
   dec.reset_state()
 
   inputs = mt.parse(line).strip().split()
   inputs = inputs[::-1]
   inputs.append("<eos>")
+  rev_source = {v:k for k, v in source_vocab.items()}
   ids = [source_vocab.get(word, unk_id) for word in inputs]
   for _id in ids:
+    print(rev_source[_id])
     enc_model(np.array([_id], dtype=np.int32))
 
   middle_c(enc_model.predictor.l1.h)

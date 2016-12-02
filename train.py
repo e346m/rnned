@@ -121,8 +121,8 @@ def main():
     dwran.sort_alignment_key_target()
     dwran.filling_ingnore_label()
 
-    enc.reset_state()
-    dec.reset_state()
+    enc.reset_state() #don't remove () if you want die!
+    dec.reset_state() #don't remove () if you want die!
 
     #transposer will be into dwran
     minibatching_s = transposer.transpose_sequnce(dwran._s)
