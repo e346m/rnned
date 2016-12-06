@@ -107,7 +107,7 @@ while True:
     enc_model(np.array([_id], dtype=np.int32))
 
   middle_c(enc_model.predictor.l1.h)
-  dec_model.predictor.set_l1(middle_c)
+  dec_model.predictor.set_initial_l1(middle_c)
 
   prev_y = np.array([-1], dtype=np.int32)
   rev_target_vocab = {v:k for k, v in target_vocab.items()}

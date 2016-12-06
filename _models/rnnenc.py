@@ -38,3 +38,9 @@ class RNNEncoder(chainer.Chain):
     cond = self.set_condition(x)
     self.l1(F.dropout(x_cswr, train=self.train), cond)
     return None
+
+  def eval_call(self, x):
+    x_cswr = self.embed(x)
+    cond = self.set_condition(x)
+    self.l1(F.dropout(x_cswr, train=self.train), cond)
+    return x_cswr

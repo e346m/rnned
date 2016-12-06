@@ -75,7 +75,7 @@ class LSTMDec(chainer.Chain):
 
   #TODO when will you use? it's for generlize gpu cpu
   def set_initial_state(self, h0, cfe):
-    assert isinstance(h, chainer.Variable)
+    assert isinstance(h0, chainer.Variable)
     assert isinstance(cfe, chainer.Variable)
     h0_ = h0
     cfe_ = cfe
