@@ -30,8 +30,8 @@ class RNNDecoder(chainer.Chain):
   def reset_state(self):
     self.l1.reset_state()
 
-  def set_l1(self, middle):
-    self.l1.set_state(middle.dec_h0, middle.mid_c)
+  def set_initial_l1(self, middle):
+    self.l1.set_initial_state(middle.dec_h0, middle.mid_c)
 
   #management hidden state h and c in l1 not in this object
   def __call__(self, prev_y_ids, middle, batch):
