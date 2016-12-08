@@ -10,18 +10,18 @@ from collections import Counter
 
 from ipdb import set_trace
 UNK = "<unk>"
-V_SIZE = 10000 #論文は15000
+V_SIZE = 15000
 
 class Load(object):
   def __init__(self, dump_label):
     self.dump_label = dump_label
 
   def normalize_load_data(self, output, filename):
-    fs = np.array(pd.read_table(filename))
+    fs = np.array(pd.read_table(filename, header=None))
     self.r_info([line[0].lower().strip().split() for line in fs], output)
 
   def load_data(self, filename):
-    fs = np.array(pd.read_table(filename))
+    fs = np.array(pd.read_table(filename, header=None))
     self.r_info([line[0].strip().split() for line in fs])
 
   def r_info(self, lines, output):
