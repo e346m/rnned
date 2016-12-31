@@ -41,3 +41,11 @@ class RNNDecoder(chainer.Chain):
         F.dropout(prev_y_cswr[:batch], train=self.train),
         F.dropout(middle.mid_c[:batch], train=self.train))
     return y
+
+  def eval_call(self, prev_y_ids, middle, batch):
+    prev_y_cswr = self.embed(prev_y_ids)
+    h = self.l1(F.dropout(prev_y_cswr, train=self.train))
+    y = self.l2(F.dropout(h[:batch], train=self.train),
+        F.dropout(prev_y_cswr[:batch], train=self.train),
+        F.dropout(middle.mid_c[:batch], train=self.train))
+    return y, prev_y_cswr

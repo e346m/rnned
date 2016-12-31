@@ -8,10 +8,13 @@ import matplotlib.pyplot as plt
 import six.moves.cPickle as pickle
 from ipdb import set_trace
 
-#with open("./word_analysis_w", "r") as f:
-#  word_rep = pickle.load(f)
+with open("./source_analysis_w", "r") as f:
+  s_rep = pickle.load(f)
+#with open("./target_analysis_w", "r") as f:
+#  t_rep = pickle.load(f)
 #
-#X = [word_rep[word].data[0] for word in word_rep]
+sX = [s_rep[word].data[0] for word in s_rep]
+#tX = [t_rep[word].data[0] for word in t_rep]
 #set_trace()
 #pca = PCA(n_components = 3)
 #pca.fit(X)
@@ -23,20 +26,14 @@ from ipdb import set_trace
 #
 #ax.set_title("PCA for distributed representaion")
 #ax.legend(numpoints=1)
-
-
-iris = datasets.load_iris()
-X = iris.data
-Y = iris.target
-
-set_trace()
-
 model = TSNE(n_components=2, perplexity=50, n_iter=500, verbose=3, random_state=1)
-X = model.fit_transform(X)
+sX = model.fit_transform(sX)
+#tX = model.fit_transform(tX)
 
 plt.figure(2, figsize=(8, 6))
 plt.clf()
-plt.scatter(X[:, 0], X[:, 1], c=Y, cmap=plt.cm.Paired)
+plt.scatter(sX[:, 0], sX[:, 1], c="red", cmap=plt.cm.Paired)
+#plt.scatter(tX[:, 0], tX[:, 1], c="blue", cmap=plt.cm.Paired)
 plt.xlabel('tsne1')
 plt.ylabel('tsne2')
 

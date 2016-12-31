@@ -4,8 +4,8 @@ from __future__ import division
 from __future__ import print_function
 
 import sys
-sys.path.append("./mylink")
-sys.path.append("./_models")
+sys.path.append("./../mylink")
+sys.path.append("./../_models")
 
 import argparse
 
@@ -93,7 +93,8 @@ mt = MeCab.Tagger("-Owakati")
 unk_id = source_vocab["<unk>"]
 
 out = []
-word_analysis = {}
+source_analysis = {}
+target_analysis = {}
 with open("%s" %args.input, "r") as f:
   for line in f:
     enc.reset_state()
@@ -105,7 +106,7 @@ with open("%s" %args.input, "r") as f:
     ids = [source_vocab.get(word, unk_id) for word in inputs]
     rev_source_vocab = {v:k for k, v in source_vocab.items()}
     for _id in ids:
-      word_analysis[_id] = enc_model.predictor.eval_call(np.array([_id], dtype=np.int32))
+      source_analysis[_id] = enc_model.predictor.eval_call(np.array([_id], dtype=np.int32))
 
     middle_c(enc_model.predictor.l1.h)
     dec_model.predictor.set_initial_l1(middle_c)
@@ -113,9 +114,13 @@ with open("%s" %args.input, "r") as f:
     prev_y = np.array([-1], dtype=np.int32)
     rev_target_vocab = {v:k for k, v in target_vocab.items()}
 
+    wid = None
     tmp_out = []
     for i in six.moves.range(args.length):
-      prob = F.softmax(dec_model.predictor(prev_y, middle_c, 1))
+      _prob, prev_y_cswr = dec_model.predictor.eval_call(prev_y, middle_c, 1)
+      prob = F.softmax(_prob)
+      if wid is not None:
+        target_analysis[wid] = prev_y_cswr
       wid = prob.data.argmax(1)[0]
 
       if rev_target_vocab[wid] == '<eos>':
@@ -131,5 +136,7 @@ with open("%s/trans" %args.output, "wb") as f:
   for line in out:
     f.write(" ".join(line))
 
-with open("%s/word_analysis" %args.output, "wb") as f:
-  pickle.dump(word_analysis, f)
+with open("%s/source_analysis" %args.output, "wb") as f:
+  pickle.dump(source_analysis, f)
+with open("%s/target_analysis" %args.output, "wb") as f:
+  pickle.dump(target_analysis, f)
