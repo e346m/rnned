@@ -166,7 +166,7 @@ def main():
       os.mkdir(path, 0755)
       continue
 
-    if i % 1000 == 0:
+    if i % 5000 == 0:
       print ("epoch ", i, "\n")
       print("loss: ", loss.data, "\n")
       os.mkdir("./%s/%s" %(path, i), 0755)
