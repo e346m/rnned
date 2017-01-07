@@ -1,24 +1,22 @@
 #!/usr/local/var/pyenv/shims/python
+# -*- coding: utf-8 -*-
+import argparse
 from nltk.translate import bleu_score
-hypothesis1 = ['It', 'is', 'a', 'guide', 'to', 'action', 'which',
-              'ensures', 'that', 'the', 'military', 'always',
-              'obeys', 'the', 'commands', 'of', 'the', 'party']
+from ipdb import set_trace
 
-hypothesis2 = ['It', 'is', 'to', 'insure', 'the', 'troops',
-              'forever', 'hearing', 'the', 'activity', 'guidebook',
-              'that', 'party', 'direct']
 
-reference1 = ['It', 'is', 'a', 'guide', 'to', 'action', 'that',
-              'ensures', 'that', 'the', 'military', 'will', 'forever',
-              'heed', 'Party', 'commands']
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--hypothesis', '-hy', help='hypothesis document')
+    parser.add_argument('--references', '-ref', help='reference document')
+    args = parser.parse_args()
+    each_score = []
+    with open(args.hypothesis, "r") as hyps:
+        with open(args.references, "r") as refs:
+            each_score = [bleu_score.sentence_bleu([ref], hyp)
+                          for hyp, ref in zip(hyps, refs)]
+    set_trace()
+    print(sum(each_score)/len(args.hypothesis))
 
-reference2 = ['It', 'is', 'the', 'guiding', 'principle', 'which',
-              'guarantees', 'the', 'military', 'forces', 'always',
-              'being', 'under', 'the', 'command', 'of', 'the',
-              'Party']
-
-reference3 = ['It', 'is', 'the', 'practical', 'guide', 'for', 'the',
-              'army', 'always', 'to', 'heed', 'the', 'directions',
-              'of', 'the', 'party']
-
-print(bleu_score.sentence_bleu([reference1, reference2, reference3], hypothesis1))
+if __name__ == '__main__':
+    main()
