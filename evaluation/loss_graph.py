@@ -10,7 +10,7 @@ parser.add_argument('--dir', '-d', help='Target file path')
 args = parser.parse_args()
 
 with open(args.dir, "r") as f:
-  loss =  [cuda.to_cpu(_f) for _f in pickle.load(f)]
+    loss = [cuda.to_cpu(_f) for _f in pickle.load(f)]
 
 t1 = np.arange(0, len(loss), 1)
 
