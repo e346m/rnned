@@ -5,6 +5,7 @@ from chainer import link
 from chainer import reporter
 from ipdb import set_trace
 
+
 class Classifier(link.Chain):
 
     compute_accuracy = True
@@ -39,6 +40,7 @@ class DecClassifier(Classifier):
             self.accuracy = self.accfun(self.y, t)
             reporter.report({'accuracy': self.accuracy}, self)
         return self.loss
+
 
 class EncClassifier(Classifier):
     def __call__(self, args):
