@@ -1,4 +1,3 @@
-#!/usr/local/var/pyenv/shims/python
 # -*- coding: utf-8 -*-
 import argparse
 from nltk.translate import bleu_score
