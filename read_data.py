@@ -64,7 +64,7 @@ def main():
     args = parser.parse_args()
 
     if not os.path.exists(args.output):
-        os.mkdir(args.output, "0755")
+        os.mkdir(args.output, 0o755)
     SourceLoader().normalize_load_data(args.output, args.source)
     TargetLoader().normalize_load_data(args.output, args.target)
 
