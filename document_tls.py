@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import division
 from __future__ import print_function
 import argparse
@@ -13,8 +12,8 @@ import six
 import six.moves.cPickle as pickle
 
 import sys
-sys.path.append("./../mylink")
-sys.path.append("./../_models")
+sys.path.append("./mylink")
+sys.path.append("./_models")
 
 import rnndec
 import rnnenc
@@ -46,11 +45,11 @@ parser.add_argument('--output', '-o', default="",
 parser.set_defaults(test=False)
 args = parser.parse_args()
 
-with open("%s/source.vocab" % args.wdir, "r") as f:
-    source_vocab = pickle.load(f)
+with open("%s/source.vocab" % args.wdir, "rb") as f:
+    source_vocab = pickle.load(f, encoding='bytes')
 
-with open("%s/target.vocab" % args.wdir, "r") as f:
-    target_vocab = pickle.load(f)
+with open("%s/target.vocab" % args.wdir, "rb") as f:
+    target_vocab = pickle.load(f, encoding='bytes')
 
 
 def softmax(x):

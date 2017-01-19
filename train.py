@@ -70,13 +70,13 @@ def main():
         opt_model.add_hook(chainer.optimizer.GradientClipping(gradclip))
         return opt_model
 
-    with open(args.input + "source.sentence", "r") as f:
+    with open(args.input + "source.sentence", "rb") as f:
         ss = pickle.load(f)
-    with open(args.input + "target.sentence", "r") as f:
+    with open(args.input + "target.sentence", "rb") as f:
         ts = pickle.load(f)
-    with open(args.input + "source.vocab", "r") as f:
+    with open(args.input + "source.vocab", "rb") as f:
         source_vocab = pickle.load(f)
-    with open(args.input + "target.vocab", "r") as f:
+    with open(args.input + "target.vocab", "rb") as f:
         target_vocab = pickle.load(f)
 
     enc = rnnenc.RNNEncoder(len(source_vocab),
@@ -169,13 +169,13 @@ def main():
         if i == 0:
             path = "./%s_%s" % (args.result_label,
                                 datetime.datetime.now().strftime("%s"))
-            os.mkdir(path, "0755")
+            os.mkdir(path, 0o755)
             continue
 
         if i % 5000 == 0:
             print("epoch ", i, "\n")
             print("loss: ", loss.data, "\n")
-            os.mkdir("./%s/%s" % (path, i), "0755")
+            os.mkdir("./%s/%s" % (path, i), 0o755)
             print("save the model")
             serializers.save_npz("./%s/%s/dec.model" % (path, i), dec_model)
             serializers.save_npz("./%s/%s/enc.model" % (path, i), enc_model)
@@ -193,7 +193,7 @@ def main():
 
     print("epoch ", i, "\n")
     print("loss: ", loss.data, "\n")
-    os.mkdir("./%s/%s" % (path, i), "0755")
+    os.mkdir("./%s/%s" % (path, i), 0o755)
     print("save the model")
     serializers.save_npz("./%s/%s/dec.model" % (path, i), dec_model)
     serializers.save_npz("./%s/%s/enc.model" % (path, i), enc_model)
