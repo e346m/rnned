@@ -84,12 +84,12 @@ unk_id = source_vocab["<unk>"]
 out = []
 source_analysis = {}
 target_analysis = {}
-with open("%s" % args.input, "r") as f:
+with open("%s" % args.input, "rb") as f:
     for line in f:
         enc.reset_state()
         dec.reset_state()
 
-        inputs = mt.parse(line).strip().split()
+        inputs = line.strip().split()
         inputs = inputs[::-1]
         inputs.append("<eos>")
         ids = [source_vocab.get(word, unk_id) for word in inputs]
@@ -121,7 +121,7 @@ with open("%s" % args.input, "r") as f:
         tmp_out.append('\n')
         out.append(tmp_out)
 
-with open("%s/trans" % args.output, "wb") as f:
+with open("%s/trans" % args.output, "w") as f:
     for line in out:
         f.write(" ".join(line))
 

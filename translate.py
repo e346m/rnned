@@ -41,11 +41,11 @@ parser.add_argument('--wdir', '-wd', default="",
 parser.set_defaults(test=False)
 args = parser.parse_args()
 
-with open("%s/source.vocab" % args.wdir, "r") as f:
+with open("%s/source.vocab" % args.wdir, "rb") as f:
     source_vocab = pickle.load(f)
 
 
-with open("%s/target.vocab" % args.wdir, "r") as f:
+with open("%s/target.vocab" % args.wdir, "rb") as f:
     target_vocab = pickle.load(f)
 
 
@@ -93,7 +93,7 @@ unk_id = source_vocab["<unk>"]
 
 while True:
     print("日本語を入力してください 終了する場合はexitを入力してください")
-    line = raw_input(">>> ")
+    line = input(">>> ")
     if line == "exit":
         break
 

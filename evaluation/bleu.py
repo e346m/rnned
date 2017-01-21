@@ -13,6 +13,7 @@ def main():
         list_of_hyps = [hyp for hyp in hyps]
     with open(args.references, "r") as refs:
         list_of_refs = [ref for ref in refs]
+    set_trace()
     score = bleu_score.corpus_bleu(list_of_refs, list_of_hyps)
     print(score)
 
