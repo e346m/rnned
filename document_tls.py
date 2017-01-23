@@ -90,7 +90,6 @@ with open("%s" % args.input, "r") as f:
         dec.reset_state()
 
         inputs = line.strip().split()
-        set_trace()
         inputs = inputs[::-1]
         inputs.append("<eos>")
         ids = [source_vocab.get(word, unk_id) for word in inputs]
