@@ -124,6 +124,7 @@ def main():
         dwran.sort_alignment_key_target()
         dwran.filling_ingnore_label()
 
+        print("drwan:", time.time() - start, "s\n")
         enc.reset_state()  # don't remove ()
         dec.reset_state()  # don't remove ()
 
@@ -155,6 +156,7 @@ def main():
             next_seq = minibatching_t[num + 1]
             loss += opt_dec.target(seq, middle_c, next_seq)
 
+        print("forwarding done:", time.time() - start, "s\n")
         report.append(loss.data)
         opt_dec.target.cleargrads()
         opt_enc.target.cleargrads()
@@ -164,7 +166,7 @@ def main():
         opt_dec.update()  # Update the parameters
         opt_middle.update()  # Update the parameters
         opt_enc.update()  # Update the parameters
-        print("done: ", time.time() - start, "s\n")
+        print("backward done: ", time.time() - start, "s\n")
 
         if i == 0:
             path = "./%s_%s" % (args.result_label,

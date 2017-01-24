@@ -95,7 +95,7 @@ with open("%s" % args.input, "r") as f:
         ids = [source_vocab.get(word, unk_id) for word in inputs]
         rev_source_vocab = {v:k for k, v in source_vocab.items()}
         for _id in ids:
-            print(rev_source_vocab[_id])
+            #print(rev_source_vocab[_id])
             source_analysis[_id] = enc_model.predictor.eval_call(np.array([_id], dtype=np.int32))
 
         middle_c(enc_model.predictor.l1.h)
