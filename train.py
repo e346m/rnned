@@ -59,6 +59,8 @@ def main():
                         help='Label to output directory')
     parser.add_argument('--dir', '-d',
                         help='continue study')
+    parser.add_argument('--itr', '-itr', type=int, defult=5000,
+                        help='point write timing')
     args = parser.parse_args()
 
     def get_lines(dataset, _indeces):
@@ -174,10 +176,10 @@ def main():
             os.mkdir(path, 0o755)
             continue
 
-        if i % 5000 == 0:
+        if i % args.itre == 0:
             print("epoch ", i, "\n")
             print("loss: ", loss.data, "\n")
-            os.mkdir("./%s/%s" % (path, i), 0o755)
+            os.mkdir("./%s/itre_%s" % (path, i), 0o755)
             print("save the model")
             serializers.save_npz("./%s/%s/dec.model" % (path, i), dec_model)
             serializers.save_npz("./%s/%s/enc.model" % (path, i), enc_model)
@@ -195,7 +197,7 @@ def main():
 
     print("epoch ", i, "\n")
     print("loss: ", loss.data, "\n")
-    os.mkdir("./%s/%s" % (path, i), 0o755)
+    os.mkdir("./%s/itre_%s" % (path, i), 0o755)
     print("save the model")
     serializers.save_npz("./%s/%s/dec.model" % (path, i), dec_model)
     serializers.save_npz("./%s/%s/enc.model" % (path, i), enc_model)

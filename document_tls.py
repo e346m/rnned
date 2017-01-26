@@ -122,11 +122,11 @@ with open("%s" % args.input, "r") as f:
         tmp_out.append('\n')
         out.append(tmp_out)
 
-with open("%s/trans" % args.output, "w") as f:
+with open("%s/translated" % args.output, "w") as f:
     for line in out:
         f.write(" ".join(line))
 
-with open("%s/source_analysis" % args.output, "wb") as f:
+with open("%s/source_embeddings" % args.output, "wb") as f:
     pickle.dump(source_analysis, f)
-with open("%s/target_analysis" % args.output, "wb") as f:
+with open("%s/target_embeddings" % args.output, "wb") as f:
     pickle.dump(target_analysis, f)
