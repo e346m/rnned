@@ -28,11 +28,11 @@ model = TSNE(n_components=2,
              perplexity=50, n_iter=500, verbose=3, random_state=1)
 sX = model.fit_transform(sX)
 
-plt.figure(2, figsize=(8, 6))
+plt.figure(2, figsize=(4, 3))
 plt.clf()
 plt.scatter(sX[:, 0], sX[:, 1], c="red", cmap=plt.cm.Paired)
 
 for v, s in zip(vocab, sX):
-    plt.annotate(v, s, fontsize=20)
+    plt.annotate(v, s, fontsize=10)
 
 plt.show()
