@@ -13,15 +13,11 @@ mpl.rcParams["font.family"] = 'Source Han Code JP'
 parser = argparse.ArgumentParser()
 parser.add_argument('--word_representaion', '-wr',
                     help="Datasets of word representaions")
-parser.add_argument('--word_vocab', '-wv',
-                    help="Datasets of word vocab")
 args = parser.parse_args()
 
-with open(args.word_vocab, "rb") as f:
-    vocab = pickle.load(f)
 with open(args.word_representaion, "rb") as f:
     rep = pickle.load(f)
-sX = [rep[word].data[0] for word in rep]
+sX = [embeddings.data for embeddings in rep.values()]
 
 # TEST
 #with open(args.word_vocab, "rb") as f:
@@ -40,7 +36,7 @@ plt.figure(2, figsize=(4, 3))
 plt.clf()
 plt.scatter(sX[:, 0], sX[:, 1], c="red", cmap=plt.cm.Paired)
 
-for v, s in zip(vocab, sX):
+for v, s in zip(rep.keys, sX):
     plt.annotate(v, s, fontsize=10)
 
 plt.show()
