@@ -59,7 +59,7 @@ def main():
                         help='Label to output directory')
     parser.add_argument('--dir', '-d',
                         help='continue study')
-    parser.add_argument('--itr', '-itr', type=int, defult=5000,
+    parser.add_argument('--itr', '-itr', type=int, default=5000,
                         help='point write timing')
     args = parser.parse_args()
 
@@ -176,40 +176,41 @@ def main():
             os.mkdir(path, 0o755)
             continue
 
-        if i % args.itre == 0:
+        if i % args.itr == 0:
             print("epoch ", i, "\n")
             print("loss: ", loss.data, "\n")
             os.mkdir("./%s/itre_%s" % (path, i), 0o755)
             print("save the model")
-            serializers.save_npz("./%s/%s/dec.model" % (path, i), dec_model)
-            serializers.save_npz("./%s/%s/enc.model" % (path, i), enc_model)
-            serializers.save_npz("./%s/%s/middle.model" % (path, i), middle_c)
+            serializers.save_npz("./%s/itre_%s/dec.model" % (path, i), dec_model)
+            serializers.save_npz("./%s/itre_%s/enc.model" % (path, i), enc_model)
+            serializers.save_npz("./%s/itre_%s/middle.model" % (path, i), middle_c)
 
             print("save the optimizer")
-            serializers.save_npz("./%s/%s/dec.state" % (path, i), opt_dec)
-            serializers.save_npz("./%s/%s/enc.state" % (path, i), opt_enc)
-            serializers.save_npz("./%s/%s/middle.state" % (path, i),
+            serializers.save_npz("./%s/itre_%s/dec.state" % (path, i), opt_dec)
+            serializers.save_npz("./%s/itre_%s/enc.state" % (path, i), opt_enc)
+            serializers.save_npz("./%s/itre_%s/middle.state" % (path, i),
                                  opt_middle)
 
             print("save the loss")
-            with open("./%s/%s/report.dump" % (path, i), "wb") as f:
+            with open("./%s/itre_%s/report.dump" % (path, i), "wb") as f:
                 pickle.dump(report, f)
 
     print("epoch ", i, "\n")
     print("loss: ", loss.data, "\n")
     os.mkdir("./%s/itre_%s" % (path, i), 0o755)
     print("save the model")
-    serializers.save_npz("./%s/%s/dec.model" % (path, i), dec_model)
-    serializers.save_npz("./%s/%s/enc.model" % (path, i), enc_model)
-    serializers.save_npz("./%s/%s/middle.model" % (path, i), middle_c)
+    serializers.save_npz("./%s/itre_%s/dec.model" % (path, i), dec_model)
+    serializers.save_npz("./%s/itre_%s/enc.model" % (path, i), enc_model)
+    serializers.save_npz("./%s/itre_%s/middle.model" % (path, i), middle_c)
 
     print("save the optimizer")
-    serializers.save_npz("./%s/%s/dec.state" % (path, i), opt_dec)
-    serializers.save_npz("./%s/%s/enc.state" % (path, i), opt_enc)
-    serializers.save_npz("./%s/%s/middle.state" % (path, i), opt_middle)
+    serializers.save_npz("./%s/itre_%s/dec.state" % (path, i), opt_dec)
+    serializers.save_npz("./%s/itre_%s/enc.state" % (path, i), opt_enc)
+    serializers.save_npz("./%s/itre_%s/middle.state" % (path, i),
+                         opt_middle)
 
     print("save the loss")
-    with open("./%s/%s/report.dump" % (path, i), "wb") as f:
+    with open("./%s/itre_%s/report.dump" % (path, i), "wb") as f:
         pickle.dump(report, f)
 
 if __name__ == '__main__':

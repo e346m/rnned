@@ -21,8 +21,16 @@ with open(args.word_vocab, "rb") as f:
     vocab = pickle.load(f)
 with open(args.word_representaion, "rb") as f:
     rep = pickle.load(f)
-
 sX = [rep[word].data[0] for word in rep]
+
+# TEST
+#with open(args.word_vocab, "rb") as f:
+#    vocab = pickle.load(f)
+#with open(args.word_representaion, "rb") as f:
+#    rep = pickle.load(f)
+#sX = rep
+##vocab = [vocab[i] for i in vocab]
+#vocab = vacab.values
 
 model = TSNE(n_components=2,
              perplexity=50, n_iter=500, verbose=3, random_state=1)
