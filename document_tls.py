@@ -85,7 +85,6 @@ source_embeddings = {}
 target_embeddings = {}
 for word, ID in source_vocab.items():
     source_embeddings[word] = enc.emdeddings(ID)
-set_trace()
 for word, ID in target_vocab.items():
     target_embeddings[word] = dec.emdeddings(ID)
 
