@@ -11,6 +11,7 @@ import chainer.functions as F
 from chainer import serializers
 from chainer import variable
 from ipdb import set_trace
+from pathlib import Path
 
 import sys
 sys.path.append("./mylink")
@@ -33,20 +34,20 @@ parser.add_argument('--gpu', '-g', type=int, default=-1,
                     help='GPU ID (negative value indicates CPU)')
 parser.add_argument('--length', type=int, default=20,
                     help='length of the generated text')
-parser.add_argument('--dir', '-d', default="",
-                    help='Which result data')
-parser.add_argument('--wdir', '-wd', default="",
+parser.add_argument('--models', '-m', default="",
                     help='Which result data')
 
 parser.set_defaults(test=False)
 args = parser.parse_args()
 
-with open("%s/source.vocab" % args.wdir, "rb") as f:
-    source_vocab = pickle.load(f)
+parent = Path(args.models).parent.parent
+source_path = parent / "source.vocab"
+target_path = parent / "target.vocab"
+with source_path.open("rb") as f:
+    source_vocab = pickle.load(f, encoding='bytes')
 
-
-with open("%s/target.vocab" % args.wdir, "rb") as f:
-    target_vocab = pickle.load(f)
+with target_path.open("rb") as f:
+    target_vocab = pickle.load(f, encoding='bytes')
 
 
 def softmax(x):
@@ -80,13 +81,13 @@ middle_c = middle.MiddleC(args.unit, train=False)
 enc_model = ec.EncClassifier(enc)
 dec_model = ec.DecClassifier(dec)
 
-if args.dir:
-    print('Load model from %s/dec.model' % args.dir)
-    serializers.load_npz("%s/dec.model" % args.dir, dec_model)
-    print('Load model from %s/enc.model' % args.dir)
-    serializers.load_npz("%s/enc.model" % args.dir, enc_model)
-    print('Load model from %s/middle.model' % args.dir)
-    serializers.load_npz("%s/middle.model" % args.dir, middle_c)
+if args.models:
+    print('Load model from %s/dec.model' % args.models)
+    serializers.load_npz("%s/dec.model" % args.models, dec_model)
+    print('Load model from %s/enc.model' % args.models)
+    serializers.load_npz("%s/enc.model" % args.models, enc_model)
+    print('Load model from %s/middle.model' % args.models)
+    serializers.load_npz("%s/middle.model" % args.models, middle_c)
 
 mt = MeCab.Tagger("-Owakati")
 unk_id = source_vocab["<unk>"]

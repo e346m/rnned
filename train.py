@@ -42,8 +42,6 @@ def main():
                         help='GPU ID (negative value indicates CPU)')
     parser.add_argument('--gradclip', '-c', type=float, default=5,
                         help='Gradient norm threshold to clip')
-    parser.add_argument('--out', '-o', default='result',
-                        help='Directory to output the result')
     parser.add_argument('--resume', '-r', default='',
                         help='Resume the training from snapshot')
     parser.add_argument('--test', action='store_true',
@@ -55,10 +53,8 @@ def main():
                         help='Number of LSTM units in each layer')
     parser.add_argument('--input', '-i', default="./input/",
                         help='Using dirctory')
-    parser.add_argument('--result_label', '-rl', default="",
-                        help='Label to output directory')
-    parser.add_argument('--dir', '-d',
-                        help='continue study')
+    parser.add_argument('--out', '-o', default='result',
+                        help='Directory to output the result')
     parser.add_argument('--itr', '-itr', type=int, default=5000,
                         help='point write timing')
     args = parser.parse_args()
@@ -89,13 +85,13 @@ def main():
     enc_model = ec.EncClassifier(enc)
     dec_model = ec.DecClassifier(dec)
 
-    if args.dir:
-        print('Load model from %s/dec.model' %args.dir )
-        serializers.load_npz("%s/dec.model" %args.dir, dec_model)
-        print('Load model from %s/enc.model' %args.dir )
-        serializers.load_npz("%s/enc.model" %args.dir, enc_model)
-        print('Load model from %s/middle.model' %args.dir )
-        serializers.load_npz("%s/middle.model" %args.dir, middle_c)
+    if args.resume:
+        print('Load model from %s/dec.model' % args.continue_stud)
+        serializers.load_npz("%s/dec.model" % args.resume, dec_model)
+        print('Load model from %s/enc.model' % args.resume)
+        serializers.load_npz("%s/enc.model" % args.resume, enc_model)
+        print('Load model from %s/middle.model' % args.resume)
+        serializers.load_npz("%s/middle.model" % args.resume, middle_c)
 
     transposer = transpose.Transpose()
     dwran = data_wrangler.DataWrangler()
@@ -171,7 +167,7 @@ def main():
         print("backward done: ", time.time() - start, "s\n")
 
         if i == 0:
-            path = "./%s_%s" % (args.result_label,
+            path = "%s/%s_%s" % (args.input, args.out,
                                 datetime.datetime.now().strftime("%s"))
             os.mkdir(path, 0o755)
             continue
