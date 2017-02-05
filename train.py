@@ -112,13 +112,13 @@ def main():
     opt_dec = set_clipping(dec_model, args.gradclip)
     opt_middle = set_clipping(middle_c, args.gradclip)
 
-    indeces = np.random.permutation(len(ss))
     limit = len(ss) - args.batchsize
     report = []
 
     for i in range(args.epoch):
         start = time.time()
         print("start epoch:", i, "times\n")
+        indeces = np.random.permutation(len(ss))
         _indeces = indeces[i % limit : i % limit + args.batchsize]
         dwran._s = get_lines(ss, _indeces)
         dwran._t = get_lines(ts, _indeces)
