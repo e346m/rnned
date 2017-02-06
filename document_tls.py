@@ -20,7 +20,6 @@ import rnndec
 import rnnenc
 import middle
 import ext_classifier as ec
-import MeCab
 
 
 parser = argparse.ArgumentParser()
@@ -76,12 +75,10 @@ if args.models:
     print('Load model from %s/dec.model' % args.models)
     serializers.load_npz("%s/dec.model" % args.models, dec_model)
     print('Load model from %s/enc.model' % args.models)
-    set_trace()
     serializers.load_npz("%s/enc.model" % args.models, enc_model)
     print('Load model from %s/middle.model' % args.models)
     serializers.load_npz("%s/middle.model" % args.models, middle_c)
 
-mt = MeCab.Tagger("-Owakati")
 unk_id = source_vocab["<unk>"]
 
 source_embeddings = {}
