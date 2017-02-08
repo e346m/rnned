@@ -79,6 +79,9 @@ if args.models:
     print('Load model from %s/middle.model' % args.models)
     serializers.load_npz("%s/middle.model" % args.models, middle_c)
 
+dec_model.to_cpu()
+enc_model.to_cpu()
+middle_c.to_cpu()
 unk_id = source_vocab["<unk>"]
 
 source_embeddings = {}

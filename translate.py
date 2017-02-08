@@ -10,6 +10,7 @@ import chainer
 import chainer.functions as F
 from chainer import serializers
 from chainer import variable
+from chainer import cuda
 from ipdb import set_trace
 from pathlib import Path
 
@@ -51,11 +52,11 @@ with target_path.open("rb") as f:
 
 
 def softmax(x):
-    e = numpy.exp(x - numpy.max(x))  # prevent overflow
+    e = np.exp(x - np.max(x))  # prevent overflow
     if e.ndim == 1:
-        return e / numpy.sum(e, axis=0)
+        return e / np.sum(e, axis=0)
     else:
-        return e / numpy.array([numpy.sum(e, axis=1)]).T
+        return e / np.array([np.sum(e, axis=1)]).T
 
 
 def get_children(model):
@@ -89,6 +90,9 @@ if args.models:
     print('Load model from %s/middle.model' % args.models)
     serializers.load_npz("%s/middle.model" % args.models, middle_c)
 
+dec_model.to_cpu()
+enc_model.to_cpu()
+middle_c.to_cpu()
 mt = MeCab.Tagger("-Owakati")
 unk_id = source_vocab["<unk>"]
 
