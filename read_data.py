@@ -38,6 +38,7 @@ class Load(object):
                     vocab[word] = len(vocab)
                 tmp_line.append(vocab[word])
             dataset.append(np.array(tmp_line, dtype=np.int32))
+        print("%s:%s" % (self.dump_label, len(vocab)))
 
         with open("./%s/%s.sentence" % (output, self.dump_label), "wb") as f:
             pickle.dump(dataset, f)
