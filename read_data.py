@@ -17,8 +17,9 @@ class Load(object):
         self.dump_label = dump_label
 
     def normalize_load_data(self, output, filename):
-        fs = np.array(pd.read_table(filename, header=None))
-        self.r_info([line[0].lower().strip().split() for line in fs], output)
+        #fs = np.array(pd.read_table(filename, header=None)) # pandas fails to read some lines about vn
+        with open(filename, "r") as fs:
+            self.r_info([line.lower().strip().split() for line in fs], output)
 
     def load_data(self, filename):
         fs = np.array(pd.read_table(filename, header=None))
