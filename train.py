@@ -205,7 +205,7 @@ def main():
         validation_loss = 0
         validation_loss = forward_computaion(vss, vts, v_limit, "ON")
         report["validation"].append(validation_loss.data)
-        print("backward done: ", time.time() - vfs, "s\n")
+        print("validation done: ", time.time() - vfs, "s\n")
 
         if i == 0:
             path = "%s/%s_%s" % (args.input, args.out,
