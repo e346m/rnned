@@ -55,8 +55,10 @@ def main():
                         help='Using dirctory')
     parser.add_argument('--out', '-o', default='result',
                         help='Directory to output the result')
-    parser.add_argument('--itr', '-itr', type=int, default=5000,
+    parser.add_argument('--itr', '-itr', type=int, default=1000,
                         help='point write timing')
+    parser.add_argument('--validation', '-v',
+                        help='use validation sentences')
     args = parser.parse_args()
 
     def get_lines(dataset, _indeces):
@@ -68,6 +70,69 @@ def main():
         opt_model.add_hook(chainer.optimizer.GradientClipping(gradclip))
         return opt_model
 
+    def save_models():
+       print("epoch ", i, "\n")
+       print("loss: ", loss.data, "\n")
+       os.mkdir("./%s/itre_%s" % (path, i), 0o755)
+       print("save the model")
+       serializers.save_npz("./%s/itre_%s/dec.model" % (path, i), dec_model)
+       serializers.save_npz("./%s/itre_%s/enc.model" % (path, i), enc_model)
+       serializers.save_npz("./%s/itre_%s/middle.model" % (path, i), middle_c)
+
+       print("save the optimizer")
+       serializers.save_npz("./%s/itre_%s/dec.state" % (path, i), opt_dec)
+       serializers.save_npz("./%s/itre_%s/enc.state" % (path, i), opt_enc)
+       serializers.save_npz("./%s/itre_%s/middle.state" % (path, i),
+                            opt_middle)
+
+       print("save the loss")
+       with open("./%s/itre_%s/report.dump" % (path, i), "wb") as f:
+           pickle.dump(report, f)
+
+    # need to use trainer to get it abstract
+    def forward_computaion(source, target, rearmost, flag):
+        indeces = np.random.permutation(len(source))
+        _indeces = indeces[i % rearmost : i % rearmost + args.batchsize]
+        dwran._s = get_lines(source, _indeces)
+        dwran._t = get_lines(target, _indeces)
+        dwran.reverse_source_seq_without_last_word()
+        dwran.sort_alignment_key_target()
+        dwran.filling_ingnore_label()
+
+        print("drwan:", time.time() - start, "s\n")
+        enc.reset_state()  # don't remove ()
+        dec.reset_state()  # don't remove ()
+
+        # transposer will be into dwran
+        minibatching_s = transposer.transpose_sequnce(dwran._s)
+        if args.gpu >= 0:
+            minibatching_s = [cuda.to_gpu(seq, device=args.gpu)
+                              for seq in minibatching_s]
+
+        for seq in minibatching_s:
+            seq = chainer.Variable(seq, volatile=flag)
+            opt_enc.target(seq)
+
+        middle_c(opt_enc.target.predictor.l1.h)
+        opt_dec.target.predictor.set_initial_l1(middle_c)
+
+        loss = 0
+        # transposer will be into dwran
+        minibatching_t = transposer.transpose_sequnce(dwran._t)
+        first_ids = np.zeros(args.batchsize, dtype=np.int32)
+        first_ids.fill(-1)
+        minibatching_t.insert(0, first_ids)
+
+        if args.gpu >= 0:
+            minibatching_t = [cuda.to_gpu(seq, device=args.gpu)
+                              for seq in minibatching_t]
+
+        for num in range(len(minibatching_t) - 1):
+            seq = chainer.Variable(minibatching_t[num], volatile=flag)
+            next_seq = minibatching_t[num + 1]
+            loss += opt_dec.target(seq, middle_c, next_seq)
+        return loss
+
     with open(args.input + "source.sentence", "rb") as f:
         ss = pickle.load(f)
     with open(args.input + "target.sentence", "rb") as f:
@@ -76,6 +141,10 @@ def main():
         source_vocab = pickle.load(f)
     with open(args.input + "target.vocab", "rb") as f:
         target_vocab = pickle.load(f)
+    with open(args.validation + "source.sentence", "rb") as f:
+        vss = pickle.load(f)
+    with open(args.validation + "target.sentence", "rb") as f:
+        vts = pickle.load(f)
 
     enc = rnnenc.RNNEncoder(len(source_vocab),
                             args.emb_unit, args.unit, args.gpu)
@@ -109,53 +178,19 @@ def main():
     opt_middle = set_clipping(middle_c, args.gradclip)
 
     limit = len(ss) - args.batchsize
-    report = []
+    v_limit = len(vss) - args.batchsize
+    report = {}
+    report["train"] = []
+    report["validation"] = []
+    report["itre_step"] = args.itr
 
     for i in range(args.epoch):
         start = time.time()
         print("start epoch:", i, "times\n")
-        indeces = np.random.permutation(len(ss))
-        _indeces = indeces[i % limit : i % limit + args.batchsize]
-        dwran._s = get_lines(ss, _indeces)
-        dwran._t = get_lines(ts, _indeces)
-        dwran.reverse_source_seq_without_last_word()
-        dwran.sort_alignment_key_target()
-        dwran.filling_ingnore_label()
-
-        print("drwan:", time.time() - start, "s\n")
-        enc.reset_state()  # don't remove ()
-        dec.reset_state()  # don't remove ()
-
-        # transposer will be into dwran
-        minibatching_s = transposer.transpose_sequnce(dwran._s)
-        if args.gpu >= 0:
-            minibatching_s = [cuda.to_gpu(seq, device=args.gpu)
-                              for seq in minibatching_s]
-
-        for seq in minibatching_s:
-            opt_enc.target(seq)
-
-        middle_c(opt_enc.target.predictor.l1.h)
-        opt_dec.target.predictor.set_initial_l1(middle_c)
-
-        loss = 0
-        # transposer will be into dwran
-        minibatching_t = transposer.transpose_sequnce(dwran._t)
-        first_ids = np.zeros(args.batchsize, dtype=np.int32)
-        first_ids.fill(-1)
-        minibatching_t.insert(0, first_ids)
-
-        if args.gpu >= 0:
-            minibatching_t = [cuda.to_gpu(seq, device=args.gpu)
-                              for seq in minibatching_t]
-
-        for num in range(len(minibatching_t) - 1):
-            seq = minibatching_t[num]
-            next_seq = minibatching_t[num + 1]
-            loss += opt_dec.target(seq, middle_c, next_seq)
-
+        loss = forward_computaion(ss, ts, limit, "OFF")
         print("forwarding done:", time.time() - start, "s\n")
-        report.append(loss.data)
+
+        report["train"].append(loss.data) #need data coz won't hold history
         opt_dec.target.cleargrads()
         opt_enc.target.cleargrads()
         opt_middle.target.cleargrads()
@@ -166,6 +201,12 @@ def main():
         opt_enc.update()  # Update the parameters
         print("backward done: ", time.time() - start, "s\n")
 
+        vfs = time.time()
+        validation_loss = 0
+        validation_loss = forward_computaion(vss, vts, v_limit, "ON")
+        report["validation"].append(validation_loss.data)
+        print("backward done: ", time.time() - vfs, "s\n")
+
         if i == 0:
             path = "%s/%s_%s" % (args.input, args.out,
                                 datetime.datetime.now().strftime("%s"))
@@ -173,41 +214,9 @@ def main():
             continue
 
         if i % args.itr == 0:
-            print("epoch ", i, "\n")
-            print("loss: ", loss.data, "\n")
-            os.mkdir("./%s/itre_%s" % (path, i), 0o755)
-            print("save the model")
-            serializers.save_npz("./%s/itre_%s/dec.model" % (path, i), dec_model)
-            serializers.save_npz("./%s/itre_%s/enc.model" % (path, i), enc_model)
-            serializers.save_npz("./%s/itre_%s/middle.model" % (path, i), middle_c)
+            save_models()
 
-            print("save the optimizer")
-            serializers.save_npz("./%s/itre_%s/dec.state" % (path, i), opt_dec)
-            serializers.save_npz("./%s/itre_%s/enc.state" % (path, i), opt_enc)
-            serializers.save_npz("./%s/itre_%s/middle.state" % (path, i),
-                                 opt_middle)
-
-            print("save the loss")
-            with open("./%s/itre_%s/report.dump" % (path, i), "wb") as f:
-                pickle.dump(report, f)
-
-    print("epoch ", i, "\n")
-    print("loss: ", loss.data, "\n")
-    os.mkdir("./%s/itre_%s" % (path, i), 0o755)
-    print("save the model")
-    serializers.save_npz("./%s/itre_%s/dec.model" % (path, i), dec_model)
-    serializers.save_npz("./%s/itre_%s/enc.model" % (path, i), enc_model)
-    serializers.save_npz("./%s/itre_%s/middle.model" % (path, i), middle_c)
-
-    print("save the optimizer")
-    serializers.save_npz("./%s/itre_%s/dec.state" % (path, i), opt_dec)
-    serializers.save_npz("./%s/itre_%s/enc.state" % (path, i), opt_enc)
-    serializers.save_npz("./%s/itre_%s/middle.state" % (path, i),
-                         opt_middle)
-
-    print("save the loss")
-    with open("./%s/itre_%s/report.dump" % (path, i), "wb") as f:
-        pickle.dump(report, f)
+    save_models()
 
 if __name__ == '__main__':
     main()

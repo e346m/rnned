@@ -26,7 +26,7 @@ class RNNEncoder(chainer.Chain):
         self.l1.reset_state()
 
     def set_condition(self, x):
-        enable = (x != -1)
+        enable = (x.data != -1)
         _enable = enable.reshape(enable.shape[0], 1)
         cond = np.repeat(_enable, self.n_units, axis=1)
         if self.gpu >= 0:
