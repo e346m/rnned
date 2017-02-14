@@ -9,7 +9,6 @@ from collections import Counter
 
 from ipdb import set_trace
 UNK = "<unk>"
-V_SIZE = 15000
 
 
 class Load(object):
@@ -29,7 +28,12 @@ class Load(object):
         vocab = {"<eos>": 0, "<unk>": 1}
         dataset = []
         flat_lines = chain.from_iterable(lines)
-        count = [k for k, v in Counter(flat_lines).most_common(V_SIZE)]
+        all_word = Counter(flat_lines)
+        print(self.dump_label)
+        print("all_word: %s count" %  sum(all_word.values()))
+        print("vocab: %s count" %  len(all_word))
+        V_SIZE = round(len(all_word) * 0.93)
+        count = [k for k, v in all_word.most_common(V_SIZE)]
         for line in lines:
             tmp_line = []
             for word in line:
