@@ -99,7 +99,6 @@ def main():
         dwran.sort_alignment_key_target()
         dwran.filling_ingnore_label()
 
-        print("drwan:", time.time() - start, "s\n")
         enc.reset_state()  # don't remove ()
         dec.reset_state()  # don't remove ()
 
@@ -155,7 +154,7 @@ def main():
     dec_model = ec.DecClassifier(dec)
 
     if args.resume:
-        print('Load model from %s/dec.model' % args.continue_stud)
+        print('Load model from %s/dec.model' % args.resume)
         serializers.load_npz("%s/dec.model" % args.resume, dec_model)
         print('Load model from %s/enc.model' % args.resume)
         serializers.load_npz("%s/enc.model" % args.resume, enc_model)
@@ -201,11 +200,6 @@ def main():
         opt_enc.update()  # Update the parameters
         print("backward done: ", time.time() - start, "s\n")
 
-        vfs = time.time()
-        validation_loss = 0
-        validation_loss = forward_computaion(vss, vts, v_limit, "ON")
-        report["validation"].append(validation_loss.data)
-        print("validation done: ", time.time() - vfs, "s\n")
 
         if i == 0:
             path = "%s/%s_%s" % (args.input, args.out,
@@ -215,6 +209,13 @@ def main():
 
         if i % args.itr == 0:
             save_models()
+
+        if i % 25 == 0:
+            vfs = time.time()
+            validation_loss = 0
+            validation_loss = forward_computaion(vss, vts, v_limit, "ON")
+            report["validation"].append(validation_loss.data)
+            print("validation done: ", time.time() - vfs, "s\n")
 
     save_models()
 
