@@ -31,5 +31,5 @@ t1 = np.arange(0, len(loss), 1)
 t_step = np.arange(0, len(arr), 1)
 
 plt.plot(t1, loss, "k")
-plt.plot(t_step, v_loss, "r")
+plt.plot(t_step, arr, "r")
 plt.show()

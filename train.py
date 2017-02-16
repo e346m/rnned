@@ -70,7 +70,7 @@ def main():
         opt_model.add_hook(chainer.optimizer.GradientClipping(gradclip))
         return opt_model
 
-    def save_models():
+    def save_models(i):
        print("epoch ", i, "\n")
        print("loss: ", loss.data, "\n")
        os.mkdir("./%s/itre_%s" % (path, i), 0o755)
@@ -219,9 +219,7 @@ def main():
             print("validation done: ", time.time() - vfs, "s\n")
 
         if (i + 1) % args.itr == 0:
-            save_models()
-
-    save_models()
+            save_models(i + 1)
 
 if __name__ == '__main__':
     main()
