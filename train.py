@@ -200,22 +200,26 @@ def main():
         opt_enc.update()  # Update the parameters
         print("backward done: ", time.time() - start, "s\n")
 
-
         if i == 0:
             path = "%s/%s_%s" % (args.input, args.out,
                                 datetime.datetime.now().strftime("%s"))
             os.mkdir(path, 0o755)
-            continue
-
-        if i % args.itr == 0:
-            save_models()
-
-        if i % 25 == 0:
             vfs = time.time()
             validation_loss = 0
             validation_loss = forward_computaion(vss, vts, v_limit, "ON")
             report["validation"].append(validation_loss.data)
             print("validation done: ", time.time() - vfs, "s\n")
+            continue
+
+        if (i + 1) % 25 == 0:
+            vfs = time.time()
+            validation_loss = 0
+            validation_loss = forward_computaion(vss, vts, v_limit, "ON")
+            report["validation"].append(validation_loss.data)
+            print("validation done: ", time.time() - vfs, "s\n")
+
+        if (i + 1) % args.itr == 0:
+            save_models()
 
     save_models()
 

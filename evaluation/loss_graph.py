@@ -15,8 +15,20 @@ with open(args.dir, "rb") as f:
     loss = [cuda.to_cpu(_f) for _f in data["train"]]
     v_loss = [cuda.to_cpu(_f) for _f in data["validation"]]
 
+arr = []
+size = len(v_loss) - 1
+for i, l in enumerate(v_loss):
+    arr.append(l)
+    if i == size:
+        break
+    linear_element = (v_loss[i] - v_loss[i + 1]) / 24
+    diff = l
+    for i in range(24):
+        diff = diff - linear_element
+        arr.append(diff)
+
 t1 = np.arange(0, len(loss), 1)
-t_step = np.arange(0, len(v_loss), 1)
+t_step = np.arange(0, len(arr), 1)
 
 plt.plot(t1, loss, "k")
 plt.plot(t_step, v_loss, "r")
