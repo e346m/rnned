@@ -104,12 +104,13 @@ with open("%s" % args.source_sentence, "r") as f:
         rev_source_vocab = {v:k for k, v in source_vocab.items()}
         for _id in ids:
             #print(rev_source_vocab[_id])
-            enc_model.predictor(np.array([_id], dtype=np.int32))
+            seq = chainer.Variable(np.array([_id], dtype=np.int32), volatile="OFF")
+            enc_model.predictor(seq)
 
         middle_c(enc_model.predictor.l1.h)
         dec_model.predictor.set_initial_l1(middle_c)
 
-        prev_y = np.array([-1], dtype=np.int32)
+        prev_y = chainer.Variable(np.array([-1], dtype=np.int32), volatile="OFF")
         rev_target_vocab = {v:k for k, v in target_vocab.items()}
 
         tmp_out = []
@@ -123,7 +124,7 @@ with open("%s" % args.source_sentence, "r") as f:
             else:
                 tmp_out.append(rev_target_vocab[wid])
 
-            prev_y = np.array([wid], dtype=np.int32)
+            prev_y = chainer.Variable(np.array([wid], dtype=np.int32), volatile="OFF")
         tmp_out.append('\n')
         out.append(tmp_out)
 

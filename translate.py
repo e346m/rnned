@@ -112,12 +112,13 @@ while True:
     ids = [source_vocab.get(word, unk_id) for word in inputs]
     for _id in ids:
         print(rev_source[_id])
-        enc_model(np.array([_id], dtype=np.int32))
+        seq = chainer.Variable(np.array([_id], dtype=np.int32), volatile="OFF")
+        enc_model(seq)
 
     middle_c(enc_model.predictor.l1.h)
     dec_model.predictor.set_initial_l1(middle_c)
 
-    prev_y = np.array([-1], dtype=np.int32)
+    prev_y = chainer.Variable(np.array([wid], dtype=np.int32), volatile="OFF")
     rev_target_vocab = {v: k for k, v in target_vocab.items()}
 
     for i in six.moves.range(args.length):
@@ -129,5 +130,5 @@ while True:
         else:
             sys.stdout.write(rev_target_vocab[wid] + ' ')
 
-        prev_y = np.array([wid], dtype=np.int32)
+        prev_y = chainer.Variable(np.array([wid], dtype=np.int32), volatile="OFF")
     sys.stdout.write('\n')
