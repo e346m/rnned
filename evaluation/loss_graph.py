@@ -5,6 +5,7 @@ import argparse
 import seaborn as sns
 from chainer import cuda
 from ipdb import set_trace
+v_step = 24
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dir', '-d', help='Target file path')
@@ -21,9 +22,9 @@ for i, l in enumerate(v_loss):
     arr.append(l)
     if i == size:
         break
-    linear_element = (v_loss[i] - v_loss[i + 1]) / 24
+    linear_element = (v_loss[i] - v_loss[i + 1]) / v_step
     diff = l
-    for i in range(24):
+    for i in range(v_step):
         diff = diff - linear_element
         arr.append(diff)
 
