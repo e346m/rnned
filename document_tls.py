@@ -132,7 +132,7 @@ with open("%s/translated" % args.output, "w") as f:
     for line in out:
         f.write(" ".join(line))
 
-with open("%s/source_embeddings" % args.models, "wb") as f:
+with open("%s/source_embeddings" % args.output, "wb") as f:
     pickle.dump(source_embeddings, f)
-with open("%s/target_embeddings" % args.models, "wb") as f:
+with open("%s/target_embeddings" % args.output, "wb") as f:
     pickle.dump(target_embeddings, f)
