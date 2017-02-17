@@ -160,6 +160,14 @@ def main():
         serializers.load_npz("%s/enc.model" % args.resume, enc_model)
         print('Load model from %s/middle.model' % args.resume)
         serializers.load_npz("%s/middle.model" % args.resume, middle_c)
+        print('Load model from %s/report.dump' % args.resume)
+        with open("%s/report.dump" % args.resume, "rb") as f:
+            report = pickle.load(f)
+    else:
+        report = {}
+        report["train"] = []
+        report["validation"] = []
+        report["itre_step"] = args.itr
 
     transposer = transpose.Transpose()
     dwran = data_wrangler.DataWrangler()
@@ -178,10 +186,6 @@ def main():
 
     limit = len(ss) - args.batchsize
     v_limit = len(vss) - args.batchsize
-    report = {}
-    report["train"] = []
-    report["validation"] = []
-    report["itre_step"] = args.itr
 
     for i in range(args.epoch):
         start = time.time()
