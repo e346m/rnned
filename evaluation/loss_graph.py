@@ -31,6 +31,12 @@ for i, l in enumerate(v_loss):
 t1 = np.arange(0, len(loss), 1)
 t_step = np.arange(0, len(arr), 1)
 
+num = len(loss) // 1000
+for n in range(num):
+    print("loss: {}".format(loss[n * 1000 - 1]))
+    print("v_loss: {}".format(arr[n * 1000 - 1]))
+    print("\n")
+
 plt.plot(t1, loss, "k")
 plt.plot(t_step, arr, "r")
 plt.show()
