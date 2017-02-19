@@ -56,7 +56,7 @@ else:
     reduction = t_sne()
 
 sX = reduction.transform(sX)
-plt.figure(2, figsize=(16, 9))
+plt.figure(2, figsize=(12, 8))
 plt.clf()
 plt.scatter(sX[:, 0], sX[:, 1], c="red", cmap=plt.cm.Paired)
 
