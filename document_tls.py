@@ -39,6 +39,8 @@ parser.add_argument('--source_sentence', '-s', default="",
                     help='input sentence')
 parser.add_argument('--output', '-o', default="",
                     help='translated sentence')
+parser.add_argument('--ja', '-a', action='store_true',
+                    help="choose lauguage")
 
 parser.set_defaults(test=False)
 args = parser.parse_args()
@@ -97,7 +99,10 @@ with open("%s" % args.source_sentence, "r") as f:
         enc.reset_state()
         dec.reset_state()
 
-        inputs = line.strip().split()
+        if args.ja:
+            inputs = line.split()
+        else:
+            inputs = line.lower().split()
         inputs = inputs[::-1]
         inputs.append("<eos>")
         ids = [source_vocab.get(word, unk_id) for word in inputs]
