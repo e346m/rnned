@@ -37,6 +37,8 @@ parser.add_argument('--length', type=int, default=20,
                     help='length of the generated text')
 parser.add_argument('--models', '-m', default="",
                     help='Which result data')
+parser.add_argument('--ja', '-ja', action='store_true',
+                    help="choose language")
 
 parser.set_defaults(test=False)
 args = parser.parse_args()
@@ -105,7 +107,10 @@ while True:
     enc.reset_state()
     dec.reset_state()
 
-    inputs = mt.parse(line).strip().split()
+    if args.ja:
+        inputs = mt.parse(line).strip().split()
+    else:
+        inputs = line.lower().split()
     inputs = inputs[::-1]
     inputs.append("<eos>")
     rev_source = {v: k for k, v in source_vocab.items()}
