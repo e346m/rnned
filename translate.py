@@ -116,14 +116,14 @@ while True:
     rev_source = {v: k for k, v in source_vocab.items()}
     ids = [source_vocab.get(word, unk_id) for word in inputs]
     for _id in ids:
-        print(rev_source[_id])
+        #print(rev_source[_id])
         seq = chainer.Variable(np.array([_id], dtype=np.int32), volatile="OFF")
         enc_model(seq)
 
     middle_c(enc_model.predictor.l1.h)
     dec_model.predictor.set_initial_l1(middle_c)
 
-    prev_y = chainer.Variable(np.array([wid], dtype=np.int32), volatile="OFF")
+    prev_y = chainer.Variable(np.array([-1], dtype=np.int32), volatile="OFF")
     rev_target_vocab = {v: k for k, v in target_vocab.items()}
 
     for i in six.moves.range(args.length):
@@ -131,7 +131,7 @@ while True:
         wid = prob.data.argmax(1)[0]
 
         if rev_target_vocab[wid] == '<eos>':
-            sys.stdout.write('.')
+            break
         else:
             sys.stdout.write(rev_target_vocab[wid] + ' ')
 
